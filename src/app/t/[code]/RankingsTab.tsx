@@ -99,7 +99,21 @@ export function RankingsTab({
               {i + 1}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="font-bold truncate">{s.label}</div>
+              <div className="font-bold truncate">
+                {s.label}
+                {s.mapUrl && (
+                  <a
+                    href={s.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-1.5 text-[12px]"
+                    style={{ color: "var(--primary-dark)" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    📍
+                  </a>
+                )}
+              </div>
               <div className="h-1.5 rounded-full mt-1.5" style={{ background: "var(--bg-2)" }}>
                 <div
                   className="h-1.5 rounded-full"
@@ -177,6 +191,16 @@ function WinnerCard({ stat }: { stat: BowlStat }) {
           <p className="mt-2 text-[14px] italic" style={{ color: "var(--ink-soft)" }}>
             “{stat.topNote.note}” — {stat.topNote.name}
           </p>
+        )}
+        {stat.mapUrl && (
+          <a
+            className="btn btn-line w-full mt-3"
+            href={stat.mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            📍 구글맵에서 보기
+          </a>
         )}
       </div>
     </div>

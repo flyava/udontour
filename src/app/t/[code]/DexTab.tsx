@@ -295,15 +295,27 @@ function DexDetail({
           </p>
         )}
 
-        <button
-          className="btn btn-line w-full mt-5"
-          onClick={() => {
-            onClose();
-            onEdit(slot.n);
-          }}
-        >
-          평가 수정
-        </button>
+        <div className="flex gap-2 mt-5">
+          {slot.mapUrl && (
+            <a
+              className="btn btn-primary flex-1"
+              href={slot.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📍 구글맵
+            </a>
+          )}
+          <button
+            className="btn btn-line flex-1"
+            onClick={() => {
+              onClose();
+              onEdit(slot.n);
+            }}
+          >
+            평가 수정
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -34,6 +34,7 @@ export type DexSlot = {
   photo: string | null;
   menu: string | null;
   shopRevealed: boolean;
+  mapUrl: string | null;
   taste: number;
   noodle: number;
   price: number;
@@ -71,6 +72,7 @@ export function myDex(
       photo: r?.photo_urls?.[0] ?? null,
       menu: r?.menu ?? b?.menu ?? null,
       shopRevealed: !!b?.shop_name,
+      mapUrl: b?.map_url ?? null,
       taste: r?.taste ?? 0,
       noodle: r?.noodle ?? 0,
       price: r?.price ?? 0,
@@ -97,6 +99,7 @@ export type BowlStat = {
   revisitRate: number; // 0~1, 응답자 기준
   topNote: { note: string; name: string } | null;
   photo: string | null;
+  mapUrl: string | null;
 };
 
 function mean(xs: number[]): number {
@@ -127,6 +130,7 @@ export function bowlStats(
           revisitRate: 0,
           topNote: null,
           photo: null,
+          mapUrl: b.map_url ?? null,
         } satisfies BowlStat;
       }
       const conds = rs.map((r) => r.condition).filter((c): c is number => c != null);
@@ -148,6 +152,7 @@ export function bowlStats(
         revisitRate: revisits.length ? revisits.filter(Boolean).length / revisits.length : 0,
         topNote: noteR?.note ? { note: noteR.note, name: pname.get(noteR.participant_id) ?? "" } : null,
         photo,
+        mapUrl: b.map_url ?? null,
       } satisfies BowlStat;
     })
     .filter((s) => s.votes > 0);

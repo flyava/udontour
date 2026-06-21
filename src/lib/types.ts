@@ -25,6 +25,7 @@ export type Bowl = {
   n: number;
   menu: string | null;
   shop_name: string | null;
+  map_url: string | null;
 };
 
 export type Rating = {

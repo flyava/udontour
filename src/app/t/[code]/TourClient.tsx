@@ -125,7 +125,7 @@ function TourInner({
     0,
   );
   const bowlByN = (n: number): Bowl =>
-    bowls.find((b) => b.n === n) ?? { id: `tmp-${n}`, tour_id: tourId, n, menu: null, shop_name: null };
+    bowls.find((b) => b.n === n) ?? { id: `tmp-${n}`, tour_id: tourId, n, menu: null, shop_name: null, map_url: null };
   const sheetBowlObj = sheetBowl != null ? bowlByN(sheetBowl) : null;
 
   return (

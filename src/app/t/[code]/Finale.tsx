@@ -88,6 +88,16 @@ export function Finale({
               “{winner.topNote.note}” — {winner.topNote.name}
             </p>
           )}
+          {winner.mapUrl && (
+            <a
+              className="btn btn-line w-full mt-4"
+              href={winner.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📍 구글맵에서 보기
+            </a>
+          )}
         </div>
       )}
 
