@@ -94,7 +94,7 @@ export const AXES = [
 export type AxisKey = (typeof AXES)[number]["key"];
 
 export function bowlLabel(b: Pick<Bowl, "n" | "shop_name">): string {
-  return b.shop_name ?? `${b.n}번째 우동`;
+  return b.shop_name ?? `${b.n}번째 가게`;
 }
 
 export function avgScore(r: Pick<Rating, "taste" | "noodle" | "price" | "visual">): number {

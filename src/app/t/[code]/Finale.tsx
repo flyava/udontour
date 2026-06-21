@@ -85,7 +85,7 @@ export function Finale({
         <div className="mt-8 pop-in w-full max-w-[340px]">
           <div className="text-[44px]">🏆</div>
           <div className="text-[13px] font-extrabold tracking-widest" style={{ color: "var(--primary-dark)" }}>
-            우승 우동
+            우승 가게
           </div>
           <div className="text-[30px] font-extrabold mt-1">{winner.label}</div>
           <div className="text-[15px] font-bold mt-1" style={{ color: "var(--ink-soft)" }}>

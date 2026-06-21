@@ -72,7 +72,7 @@ export function DexTab({
       const allSlots: ShareSlot[] = slots.map((s) => ({
         n: s.n,
         filled: s.filled,
-        label: s.shopRevealed || s.menu ? s.label : `${s.n}번째`,
+        label: s.shopRevealed ? s.label : `${s.n}번째`,
         score: s.score,
         photo: s.photo,
       }));
@@ -198,7 +198,7 @@ function tripLabel(start: string | null, end: string | null): string {
 }
 
 function DexCell({ slot, onTap }: { slot: DexSlot; onTap: () => void }) {
-  const label = slot.shopRevealed || slot.menu ? slot.label : `${slot.n}번째`;
+  const label = slot.shopRevealed ? slot.label : `${slot.n}번째`;
   return (
     <button
       onClick={onTap}
@@ -282,7 +282,7 @@ function DexDetail({
         <div className="sheet-grip" />
         <div className="flex items-center justify-between py-2">
           <h2 className="text-[19px] font-extrabold truncate pr-3">
-            {slot.shopRevealed || slot.menu ? slot.label : `${slot.n}번째 우동`}
+            {slot.shopRevealed ? slot.label : `${slot.n}번째 가게`}
           </h2>
           <button className="text-[14px] font-bold shrink-0" style={{ color: "var(--ink-faint)" }} onClick={onClose}>
             닫기

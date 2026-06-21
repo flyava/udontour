@@ -19,7 +19,7 @@ export function myRanked(
     .filter((r) => r.participant_id === participantId)
     .map((r) => ({
       n: r.bowl_n,
-      label: blabel.get(r.bowl_n) ?? `${r.bowl_n}번째 우동`,
+      label: blabel.get(r.bowl_n) ?? `${r.bowl_n}번째 가게`,
       score: avgScore(r),
       revisit: r.revisit,
     }))
@@ -69,7 +69,7 @@ export function myDex(
     slots.push({
       n,
       filled: !!r,
-      label: b ? bowlLabel(b) : `${n}번째 우동`,
+      label: b ? bowlLabel(b) : `${n}번째 가게`,
       score: r ? avgScore(r) : null,
       photo: udons[0] ?? null,
       udonPhotos: udons,

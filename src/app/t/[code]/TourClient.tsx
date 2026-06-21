@@ -12,7 +12,6 @@ import {
   prevBowl,
   finishTour,
   setCount,
-  setMenu,
   skipBowl,
   unskipBowl,
 } from "@/lib/api";
@@ -186,13 +185,6 @@ function TourInner({
               flash(errMsg(e));
             }
           }}
-          onSetMenu={async (n, menu) => {
-            try {
-              await setMenu(tourId, n, menu);
-            } catch (e) {
-              flash(errMsg(e));
-            }
-          }}
           onSetCount={async (c) => {
             try {
               await setCount(tourId, c);
@@ -355,7 +347,6 @@ function EvalTab(props: {
   onStart: () => void;
   onNext: () => void;
   onPrev: () => void;
-  onSetMenu: (n: number, menu: string) => void;
   onSetCount: (c: number) => void;
   onReveal: () => void;
   onFinish: () => void;
@@ -376,7 +367,6 @@ function EvalTab(props: {
     onStart,
     onNext,
     onPrev,
-    onSetMenu,
     onSetCount,
     onReveal,
     onFinish,
@@ -388,26 +378,25 @@ function EvalTab(props: {
         {isHost ? (
           <div className="card p-6 text-center">
             <div className="text-4xl">🥢</div>
-            <p className="mt-3 font-bold">준비되면 첫 우동을 여세요.</p>
+            <p className="mt-3 font-bold">준비되면 첫 가게를 여세요.</p>
             <p className="text-[13px] mt-1" style={{ color: "var(--ink-soft)" }}>
-              전원이 입력해야 다음 우동이 열려요.
+              전원이 입력해야 다음 가게가 열려요.
             </p>
             <button className="btn btn-primary w-full mt-5" onClick={onStart}>
-              첫 우동 시작 →
+              첫 가게 시작 →
             </button>
             <CountAdjust need={need} onSetCount={onSetCount} />
           </div>
         ) : (
           <div className="card p-8 text-center">
             <div className="text-4xl">⏳</div>
-            <p className="mt-3 font-bold">호스트가 첫 우동을 열면 시작해요.</p>
+            <p className="mt-3 font-bold">호스트가 첫 가게를 열면 시작해요.</p>
           </div>
         )}
       </div>
     );
   }
 
-  const curBowl = bowls.find((b) => b.n === cur);
   const mineCur = !!myRating(cur);
 
   return (
@@ -432,7 +421,7 @@ function EvalTab(props: {
       <div className="card p-5 pop-in">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-extrabold tracking-widest" style={{ color: "var(--primary-dark)" }}>
-            현재 그릇
+            현재 가게
           </span>
           {!isHost && (
             <span className="text-[13px] font-bold" style={{ color: "var(--ink-soft)" }}>
@@ -440,14 +429,7 @@ function EvalTab(props: {
             </span>
           )}
         </div>
-        <div className="text-[26px] font-extrabold mt-1">{cur}번째 우동</div>
-        {curBowl?.menu && (
-          <div className="text-[15px] font-bold" style={{ color: "var(--ink-soft)" }}>
-            {curBowl.menu}
-          </div>
-        )}
-
-        {isHost && <MenuEditor n={cur} menu={curBowl?.menu ?? ""} onSetMenu={onSetMenu} />}
+        <div className="text-[26px] font-extrabold mt-1">{cur}번째 가게</div>
 
         {mineCur ? (
           <button className="btn btn-ghost w-full mt-4" onClick={() => onOpenBowl(cur)}>
@@ -470,7 +452,7 @@ function EvalTab(props: {
         ) : (
           <>
             <button className="btn btn-primary w-full mt-4" onClick={() => onOpenBowl(cur)}>
-              이 우동 평가하기
+              이 가게 평가하기
             </button>
             <button className="btn btn-line w-full mt-2" onClick={onSkip}>
               🥵 배불러서 패스
@@ -486,14 +468,14 @@ function EvalTab(props: {
             ← 이전
           </button>
           <button className="btn btn-primary flex-1" disabled={!gateOpen} onClick={onNext}>
-            {gateOpen ? "다음 우동 →" : `대기 ${submitted}/${need}`}
+            {gateOpen ? "다음 가게 →" : `대기 ${submitted}/${need}`}
           </button>
         </div>
       )}
 
       {/* 그릇 칩 (따라잡기) */}
       <h3 className="mt-6 mb-2 text-[14px] font-extrabold" style={{ color: "var(--ink-soft)" }}>
-        그릇 목록 (눌러서 따라잡기)
+        가게 목록 (눌러서 따라잡기)
       </h3>
       <div className="flex flex-wrap gap-2">
         {Array.from({ length: Math.max(tour.max_bowl, cur) }).map((_, i) => {
@@ -531,46 +513,6 @@ function EvalTab(props: {
           <CountAdjust need={need} onSetCount={onSetCount} />
         </div>
       )}
-    </div>
-  );
-}
-
-function MenuEditor({
-  n,
-  menu,
-  onSetMenu,
-}: {
-  n: number;
-  menu: string;
-  onSetMenu: (n: number, menu: string) => void;
-}) {
-  const [val, setVal] = useState(menu);
-  const [open, setOpen] = useState(false);
-  useEffect(() => setVal(menu), [menu]);
-  if (!open)
-    return (
-      <button className="mt-3 text-[13px] font-bold" style={{ color: "var(--primary-dark)" }} onClick={() => setOpen(true)}>
-        ✎ 우동 이름 알리기
-      </button>
-    );
-  return (
-    <div className="flex gap-2 mt-3">
-      <input
-        className="field"
-        placeholder="예: 붓카케 우동"
-        maxLength={24}
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-      />
-      <button
-        className="btn btn-primary px-4"
-        onClick={() => {
-          onSetMenu(n, val.trim());
-          setOpen(false);
-        }}
-      >
-        알림
-      </button>
     </div>
   );
 }

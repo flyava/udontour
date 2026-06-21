@@ -73,7 +73,7 @@ export function RevealSheet({
             return (
               <div key={n} className="card p-3.5">
                 <div className="text-[13px] font-bold mb-2" style={{ color: "var(--ink-soft)" }}>
-                  {n}번째{b?.menu ? ` · ${b.menu}` : ""} →
+                  {n}번째 가게 →
                 </div>
                 <input
                   className="field"

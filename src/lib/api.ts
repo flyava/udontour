@@ -69,12 +69,6 @@ export async function setCount(tourId: string, count: number) {
   if (error) throw error;
 }
 
-export async function setMenu(tourId: string, n: number, menu: string) {
-  const sb = getSupabase();
-  const { error } = await sb.rpc("set_menu", { p_tour: tourId, p_n: n, p_menu: menu });
-  if (error) throw error;
-}
-
 export async function setShop(tourId: string, n: number, shop: string, mapUrl = "") {
   const sb = getSupabase();
   const { error } = await sb.rpc("set_shop", {

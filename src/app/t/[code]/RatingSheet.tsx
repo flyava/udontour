@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Bowl, Rating, PhotoKind } from "@/lib/types";
 import { MAX_PHOTOS, PHOTO_KINDS } from "@/lib/types";
 import { upsertRating, uploadPhoto, type RatingInput } from "@/lib/api";
@@ -27,7 +27,6 @@ export function RatingSheet({
   const [visual, setVisual] = useState(existing?.visual ?? 0);
   const [condition, setCondition] = useState<number | null>(existing?.condition ?? null);
   const [revisit, setRevisit] = useState<boolean | null>(existing?.revisit ?? null);
-  const [menu, setMenu] = useState(existing?.menu ?? bowl.menu ?? "");
   const [note, setNote] = useState(existing?.note ?? "");
   const [photos, setPhotos] = useState<{ url: string; kind: PhotoKind }[]>(
     (existing?.photo_urls ?? []).map((url, i) => ({
@@ -37,11 +36,6 @@ export function RatingSheet({
   );
   const [busy, setBusy] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
-
-  // 호스트 announce 메뉴가 바뀌고 내가 아직 안 건드렸으면 프리필
-  useEffect(() => {
-    if (!existing && !menu && bowl.menu) setMenu(bowl.menu);
-  }, [bowl.menu, existing, menu]);
 
   const allAxes = taste > 0 && noodle > 0 && price > 0 && visual > 0;
 
@@ -73,7 +67,7 @@ export function RatingSheet({
       visual,
       condition,
       revisit,
-      menu: menu.trim() || null,
+      menu: null,
       note: note.trim() || null,
       photo_urls: photos.map((p) => p.url),
       photo_kinds: photos.map((p) => p.kind),
@@ -93,22 +87,13 @@ export function RatingSheet({
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-grip" />
         <div className="flex items-center justify-between py-2">
-          <h2 className="text-[19px] font-extrabold">{bowl.n}번째 우동</h2>
+          <h2 className="text-[19px] font-extrabold">{bowl.shop_name ?? `${bowl.n}번째 가게`}</h2>
           <button className="text-[14px] font-bold" style={{ color: "var(--ink-faint)" }} onClick={onClose}>
             닫기
           </button>
         </div>
 
-        <label className="label mt-1">메뉴 (한글)</label>
-        <input
-          className="field"
-          placeholder="예: 가마타마 우동"
-          maxLength={24}
-          value={menu}
-          onChange={(e) => setMenu(e.target.value)}
-        />
-
-        <div className="card p-4 mt-4 flex flex-col gap-4">
+        <div className="card p-4 mt-3 flex flex-col gap-4">
           <HalfSlider label="맛" value={taste} onChange={setTaste} />
           <HalfSlider label="면발" value={noodle} onChange={setNoodle} />
           <HalfSlider label="가성비" value={price} onChange={setPrice} />
