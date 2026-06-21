@@ -241,14 +241,16 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
         ctx.font = `400 ${Math.round(cell * 0.42)}px ${FONT}`;
         ctx.fillText("🍜", x + cell / 2, y + cell * 0.56);
       }
-      // 라벨(최대 2줄) — 긴 일본어 상호명 대응
+      // 라벨(최대 2줄) — 긴 일본어 상호명 대응. 둥근 모서리에 안 잘리게 안쪽으로 들임
       ctx.textAlign = "left";
       const fs = Math.max(20, Math.round(cell * 0.092));
       ctx.font = `800 ${fs}px ${FONT}`;
-      const lines = wrapLines(ctx, s.label, cell - 28, 2);
+      const padX = Math.round(cell * 0.085); // 좌우 안전 여백(코너 곡선 회피)
+      const padB = Math.round(cell * 0.085); // 바닥 안전 여백
+      const lines = wrapLines(ctx, s.label, cell - padX * 2, 2);
       const lh = Math.round(fs * 1.2);
       // 하단 그라데이션(줄 수에 맞춰 높이 조절)
-      const gradTop = y + cell - (lines.length * lh + 24);
+      const gradTop = y + cell - (lines.length * lh + padB + 12);
       const sh = ctx.createLinearGradient(x, Math.min(gradTop, y + cell * 0.5), x, y + cell);
       sh.addColorStop(0, "rgba(0,0,0,0)");
       sh.addColorStop(1, "rgba(20,12,4,0.82)");
@@ -256,8 +258,8 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
       ctx.fillRect(x, Math.min(gradTop, y + cell * 0.5), cell, cell);
       ctx.fillStyle = "#fff";
       lines.forEach((ln, li) => {
-        const baseY = y + cell - 16 - (lines.length - 1 - li) * lh;
-        ctx.fillText(ln, x + 14, baseY);
+        const baseY = y + cell - padB - (lines.length - 1 - li) * lh;
+        ctx.fillText(ln, x + padX, baseY);
       });
       // 점수 배지
       if (s.score != null) {
