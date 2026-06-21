@@ -69,8 +69,10 @@ export function Finale({
         </div>
       </div>
 
+      <BowlStack count={count} total={total} />
+
       {showWinner && winner && (
-        <div className="mt-10 pop-in w-full max-w-[340px]">
+        <div className="mt-8 pop-in w-full max-w-[340px]">
           <div className="text-[44px]">🏆</div>
           <div className="text-[13px] font-extrabold tracking-widest" style={{ color: "var(--primary-dark)" }}>
             우승 우동
@@ -101,9 +103,52 @@ export function Finale({
         </div>
       )}
 
-      <button className="btn btn-line mt-10 px-8" onClick={onClose}>
+      <button className="btn btn-line mt-8 px-8" onClick={onClose}>
         닫기
       </button>
+    </div>
+  );
+}
+
+const MAX_STACK = 9;
+const BOWL = 38;
+const STEP = 15; // 그릇 간 세로 간격(겹침)
+
+/** 비운 그릇이 하나씩 떨어져 쌓이는 더미. count 가 올라갈 때마다 한 그릇씩 등장. */
+function BowlStack({ count, total }: { count: number; total: number }) {
+  const n = Math.min(total, MAX_STACK);
+  if (n === 0) return null;
+  return (
+    <div
+      className="relative mt-5"
+      style={{ width: 90, height: BOWL + (n - 1) * STEP }}
+      aria-hidden
+    >
+      {Array.from({ length: n }).map((_, i) => {
+        const shown = count > i;
+        const jitter = (i % 2 === 0 ? 1 : -1) * (2 + (i % 3)); // 살짝 흔들리는 단정한 스택
+        return (
+          <span
+            key={i}
+            className="absolute leading-none select-none"
+            style={{
+              left: "50%",
+              bottom: i * STEP,
+              fontSize: BOWL,
+              zIndex: i,
+              opacity: shown ? 1 : 0,
+              transform: shown
+                ? `translate(calc(-50% + ${jitter}px), 0) rotate(${jitter * 0.5}deg)`
+                : "translate(-50%, -30px) scale(0.4)",
+              transition:
+                "opacity .18s ease, transform .42s cubic-bezier(0.2, 0.9, 0.3, 1.5)",
+              filter: "drop-shadow(0 4px 3px rgba(120, 70, 20, 0.2))",
+            }}
+          >
+            🍜
+          </span>
+        );
+      })}
     </div>
   );
 }
