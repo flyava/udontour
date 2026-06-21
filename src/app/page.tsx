@@ -37,7 +37,7 @@ export default function Home() {
         <div className="text-[56px] leading-none">🍜</div>
         <h1 className="mt-3 text-[28px] font-extrabold tracking-tight">모리 우동투어</h1>
         <p className="mt-2 text-[15px]" style={{ color: "var(--ink-soft)" }}>
-          블라인드로 그릇을 평가하고, 끝나고 우승 우동을 공개해요.
+          블라인드로 우동을 평가하고, 마지막에 최고의 우동을 공개합니다.
         </p>
       </div>
 

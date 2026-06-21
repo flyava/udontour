@@ -1,19 +1,22 @@
 "use client";
 
 import type { Bowl, Rating, Participant } from "@/lib/types";
-import { bowlStats, ranked, categoryWinner, revisitWinner, type BowlStat } from "@/lib/aggregate";
+import { bowlStats, ranked, categoryWinner, revisitWinner, myRanked, type BowlStat } from "@/lib/aggregate";
 
 export function RankingsTab({
   bowls,
   ratings,
   participants,
+  meId,
 }: {
   bowls: Bowl[];
   ratings: Rating[];
   participants: Participant[];
+  meId: string;
 }) {
   const stats = bowlStats(bowls, ratings, participants);
   const order = ranked(stats);
+  const mine = myRanked(bowls, ratings, meId).slice(0, 5);
   const total = ratings.length;
 
   if (stats.length === 0) {
@@ -48,6 +51,38 @@ export function RankingsTab({
 
       {/* 1위 카드 */}
       <WinnerCard stat={winner} />
+
+      {/* 내 평가 순위 */}
+      {mine.length > 0 && (
+        <>
+          <h3 className="mt-6 mb-2 text-[15px] font-extrabold">내 평가 순위</h3>
+          <div className="card divide-y" style={{ borderColor: "var(--line)" }}>
+            {mine.map((m, i) => (
+              <div key={m.n} className="flex items-center gap-3 p-3.5" style={{ borderColor: "var(--line)" }}>
+                <span
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-extrabold shrink-0"
+                  style={{
+                    background: i === 0 ? "var(--broth)" : "var(--bg-2)",
+                    color: i === 0 ? "#fff" : "var(--ink-soft)",
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold truncate">
+                    {m.label}
+                    {m.revisit && <span className="ml-1.5 text-[12px]">💘</span>}
+                  </div>
+                </div>
+                <div className="font-extrabold tabular-nums shrink-0">{m.score.toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[12px]" style={{ color: "var(--ink-faint)" }}>
+            내가 매긴 점수 기준 · 상위 {mine.length}
+          </p>
+        </>
+      )}
 
       {/* 종합 순위 */}
       <h3 className="mt-6 mb-2 text-[15px] font-extrabold">종합 순위</h3>

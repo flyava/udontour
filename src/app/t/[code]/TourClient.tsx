@@ -183,7 +183,7 @@ function TourInner({
           }}
         />
       ) : (
-        <RankingsTab bowls={bowls} ratings={ratings} participants={participants} />
+        <RankingsTab bowls={bowls} ratings={ratings} participants={participants} meId={me.id} />
       )}
 
       {sheetBowlObj && (

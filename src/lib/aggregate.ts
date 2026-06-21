@@ -1,6 +1,31 @@
 import type { Bowl, Rating, Participant } from "./types";
 import { avgScore, bowlLabel } from "./types";
 
+export type MyBowlScore = {
+  n: number;
+  label: string;
+  score: number;
+  revisit: boolean | null;
+};
+
+/** 나(한 참여자)가 매긴 점수만으로 낸 우동 순위 (내림차순) */
+export function myRanked(
+  bowls: Bowl[],
+  ratings: Rating[],
+  participantId: string,
+): MyBowlScore[] {
+  const blabel = new Map(bowls.map((b) => [b.n, bowlLabel(b)]));
+  return ratings
+    .filter((r) => r.participant_id === participantId)
+    .map((r) => ({
+      n: r.bowl_n,
+      label: blabel.get(r.bowl_n) ?? `${r.bowl_n}번째 우동`,
+      score: avgScore(r),
+      revisit: r.revisit,
+    }))
+    .sort((a, b) => b.score - a.score || a.n - b.n);
+}
+
 export type BowlStat = {
   n: number;
   label: string;
