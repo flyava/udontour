@@ -66,7 +66,7 @@ export function DexTab({
     else onOpenBowl(s.n);
   }
 
-  async function doShare(download: boolean) {
+  async function doShare() {
     setBusy(true);
     try {
       const allSlots: ShareSlot[] = slots.map((s) => ({
@@ -77,20 +77,17 @@ export function DexTab({
         score: s.score,
         photo: s.photo,
       }));
-      // 가능하면 4:5 한 장에 전부, 너무 많으면(>~36) 분할
-      const fit = shareFitCols(allSlots.length);
+      // 한 장 최대 3×3=9개, 초과하면 다음 페이지(가독성)
+      const PAGE = 9;
       let pages: ShareSlot[][];
       let shareCols: number;
-      if (fit) {
+      if (allSlots.length <= PAGE) {
         pages = [allSlots];
-        shareCols = fit;
+        shareCols = dexCols(allSlots.length);
       } else {
-        const PAGE = 9;
-        const pageCount = Math.ceil(allSlots.length / PAGE);
-        const perPage = Math.ceil(allSlots.length / pageCount);
         pages = [];
-        for (let i = 0; i < allSlots.length; i += perPage) pages.push(allSlots.slice(i, i + perPage));
-        shareCols = dexCols(Math.min(perPage, allSlots.length));
+        for (let i = 0; i < allSlots.length; i += PAGE) pages.push(allSlots.slice(i, i + PAGE));
+        shareCols = 3; // 페이지당 3×3
       }
       const footer = `${tripLabel(tripStart, tripEnd)} · ${myCount}그릇 · 평균 ${avg.toFixed(2)}`;
 
@@ -115,7 +112,9 @@ export function DexTab({
           }),
       );
 
-      if (!download && canFileShare && navigator.canShare?.({ files })) {
+      // 파일 공유 가능(주로 모바일)하면 공유 시트로 — 여러 장도 한 번에 전달/저장
+      // (모바일은 a.click 순차 다운로드가 2번째부터 막혀서 일부만 저장되던 문제 방지)
+      if (canFileShare && navigator.canShare?.({ files })) {
         await navigator.share({ files, title: "우동 도감", text: `${myName}의 우동 도감 🍜` });
       } else {
         for (let i = 0; i < blobs.length; i++) {
@@ -163,16 +162,9 @@ export function DexTab({
       {/* 공유 */}
       <div className="mt-6">
         {complete ? (
-          <div className="flex gap-2">
-            <button className="btn btn-line flex-1" disabled={busy} onClick={() => doShare(true)}>
-              이미지 저장
-            </button>
-            {canFileShare && (
-              <button className="btn btn-primary flex-1" disabled={busy} onClick={() => doShare(false)}>
-                {busy ? "만드는 중…" : "공유하기"}
-              </button>
-            )}
-          </div>
+          <button className="btn btn-primary w-full" disabled={busy} onClick={doShare}>
+            {busy ? "만드는 중…" : canFileShare ? "📸 이미지 저장 · 공유" : "이미지 저장"}
+          </button>
         ) : (
           <button className="btn btn-ghost w-full" disabled>
             🔒 다 모으면 공유할 수 있어요 ({myCount}/{totalSlots})
@@ -188,20 +180,6 @@ export function DexTab({
       {detail && <DexDetail slot={detail} onClose={() => setDetail(null)} onEdit={onOpenBowl} />}
     </div>
   );
-}
-
-/** 공유카드(4:5, 1200×1500)에 n개를 한 장에 담는 최소 열 수. 너무 많으면 null(→분할). */
-function shareFitCols(n: number): number | null {
-  if (n <= 0) return 1;
-  const availW = 1200 - 80 * 2;
-  const availH = 1500 - 150 - 300; // footerTop - headerBottom
-  const GAP = 24;
-  for (let c = 1; c <= 6; c++) {
-    const cell = (availW - (c - 1) * GAP) / c;
-    const rows = Math.ceil(n / c);
-    if (rows * cell + (rows - 1) * GAP <= availH) return c;
-  }
-  return null;
 }
 
 function fmtYmd(d: string): string {
