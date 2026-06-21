@@ -42,14 +42,17 @@ export function DexTab({
 
   const [detail, setDetail] = useState<DexSlot | null>(null);
   const [busy, setBusy] = useState(false);
-  const [canFileShare, setCanFileShare] = useState(false);
+  // 공유 시트는 터치 기기(모바일)에서만. 데스크톱은 다운로드(공유가 어색/실패).
+  const [preferShare, setPreferShare] = useState(false);
 
   useEffect(() => {
     try {
       const f = new File([new Blob([""])], "x.png", { type: "image/png" });
-      setCanFileShare(!!navigator.canShare?.({ files: [f] }));
+      const canShare = !!navigator.canShare?.({ files: [f] });
+      const coarse = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
+      setPreferShare(canShare && coarse);
     } catch {
-      setCanFileShare(false);
+      setPreferShare(false);
     }
   }, []);
 
@@ -114,7 +117,7 @@ export function DexTab({
 
       // 파일 공유 가능(주로 모바일)하면 공유 시트로 — 여러 장도 한 번에 저장/공유
       // (모바일 a.click 순차 다운로드는 2번째부터 막혀 일부만 저장됨)
-      if (canFileShare && navigator.canShare?.({ files })) {
+      if (preferShare && navigator.canShare?.({ files })) {
         try {
           await navigator.share({ files }); // 파일만(텍스트 동봉은 일부 기기서 실패)
           return; // 성공
@@ -135,7 +138,11 @@ export function DexTab({
         setTimeout(() => URL.revokeObjectURL(url), 4000);
         if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 600));
       }
-      onToast(blobs.length > 1 ? `이미지 ${blobs.length}장을 저장했어요!` : "이미지를 저장했어요!");
+      onToast(
+        blobs.length > 1
+          ? `이미지 ${blobs.length}장 저장 — 브라우저가 물어보면 '허용'을 눌러주세요`
+          : "이미지를 저장했어요!",
+      );
     } catch (e) {
       if ((e as Error)?.name !== "AbortError") onToast("공유 이미지를 만들지 못했어요.");
     } finally {
@@ -169,7 +176,7 @@ export function DexTab({
       <div className="mt-6">
         {complete ? (
           <button className="btn btn-primary w-full" disabled={busy} onClick={doShare}>
-            {busy ? "만드는 중…" : canFileShare ? "📸 이미지 저장 · 공유" : "이미지 저장"}
+            {busy ? "만드는 중…" : preferShare ? "📸 이미지 저장 · 공유" : "이미지 저장"}
           </button>
         ) : (
           <button className="btn btn-ghost w-full" disabled>
@@ -221,7 +228,12 @@ function DexCell({ slot, onTap }: { slot: DexSlot; onTap: () => void }) {
         <>
           {slot.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={slot.photo} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={slot.photo}
+              alt=""
+              crossOrigin="anonymous"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
           ) : (
             <div
               className="absolute inset-0 flex items-center justify-center text-[28px]"
@@ -317,6 +329,7 @@ function DexDetail({
                 key={u}
                 src={u}
                 alt=""
+                crossOrigin="anonymous"
                 className={`h-52 shrink-0 object-cover rounded-2xl card snap-center ${
                   slot.udonPhotos.length > 1 ? "w-[78%]" : "w-full"
                 }`}
