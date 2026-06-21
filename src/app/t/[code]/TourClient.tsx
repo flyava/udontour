@@ -570,6 +570,10 @@ function Onboarding({
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
+        <p className="mt-2 text-[12px]" style={{ color: "var(--ink-faint)" }}>
+          전에 참여했다면 <b>같은 이름</b>을 입력하면 이어서 할 수 있어요(2·3일차 재접속). 새로 참여하면
+          겹치지 않는 이름을 써주세요.
+        </p>
         {notFound && (
           <p className="mt-2 text-[13px]" style={{ color: "var(--red)" }}>
             투어를 찾을 수 없어요. 코드를 확인해 주세요.
