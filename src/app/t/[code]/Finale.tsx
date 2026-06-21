@@ -15,8 +15,8 @@ export function Finale({
   participants: Participant[];
   onClose: () => void;
 }) {
-  const total = ratings.length;
   const stats = bowlStats(bowls, ratings, participants);
+  const total = stats.length; // 비운 그릇 = 평가가 있는 distinct 그릇 수(평가 개수 아님)
   const winner = ranked(stats)[0] ?? null;
 
   const [count, setCount] = useState(0);

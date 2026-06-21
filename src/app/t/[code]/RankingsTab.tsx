@@ -17,7 +17,7 @@ export function RankingsTab({
   const stats = bowlStats(bowls, ratings, participants);
   const order = ranked(stats);
   const mine = myRanked(bowls, ratings, meId).slice(0, 5);
-  const total = ratings.length;
+  const total = stats.length; // 비운 그릇 = distinct 그릇 수(평가 개수 아님)
 
   if (stats.length === 0) {
     return (
