@@ -166,8 +166,22 @@ export async function uploadPhoto(
   return `${data.publicUrl}?v=${Date.now()}`;
 }
 
+/** createImageBitmap 시도 → 실패 시 HEIC/HEIF면 변환 후 재시도(비-Safari 대응) */
+async function decodeToBitmap(file: Blob): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(file);
+  } catch (err) {
+    const name = file instanceof File ? file.name : "";
+    const isHeic = /image\/hei[cf]/i.test(file.type) || /\.(heic|heif)$/i.test(name);
+    if (!isHeic) throw err;
+    // 브라우저가 HEIC를 못 읽는 경우 — 필요할 때만 변환기(libheif wasm) 로드
+    const { heicTo } = await import("heic-to/next");
+    return await heicTo({ blob: file, type: "bitmap" });
+  }
+}
+
 async function downscale(file: File, max: number, quality: number): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await decodeToBitmap(file);
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
