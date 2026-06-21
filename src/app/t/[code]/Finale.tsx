@@ -26,26 +26,59 @@ export function Finale({
   const [count, setCount] = useState(0);
   const [showWinner, setShowWinner] = useState(false);
   const [burst, setBurst] = useState<
-    { tx: number; ty: number; rot: number; size: number; delay: number }[]
+    {
+      id: number;
+      kind: "udon" | "confetti";
+      tx: number;
+      ty: number;
+      rot: number;
+      size: number;
+      delay: number;
+      color?: string;
+      round?: boolean;
+      fall?: number;
+    }[]
   >([]);
 
-  // 결산 오픈 시 우동이 폭죽처럼 터지는 짧은 인트로(1초 이내)
+  // 결산 오픈 시 우동 + 색종이가 폭죽처럼 터지는 인트로
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setBurst(
-      Array.from({ length: 22 }, (_, i) => {
-        const ang = (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
-        const dist = 130 + Math.random() * 200;
-        return {
-          tx: Math.round(Math.cos(ang) * dist),
-          ty: Math.round(Math.sin(ang) * dist),
-          rot: Math.round((Math.random() - 0.5) * 640),
-          size: Math.round(22 + Math.random() * 28),
-          delay: Math.round(Math.random() * 90),
-        };
-      }),
-    );
-    const t = setTimeout(() => setBurst([]), 1000);
+    const COLORS = ["#e8822b", "#f6c453", "#4c9a5a", "#d4503e", "#c96612", "#f59ec0", "#7cc4e8"];
+    const parts: typeof burst = [];
+    let id = 0;
+    // 우동 28개
+    for (let i = 0; i < 28; i++) {
+      const ang = (i / 28) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+      const dist = 130 + Math.random() * 210;
+      parts.push({
+        id: id++,
+        kind: "udon",
+        tx: Math.round(Math.cos(ang) * dist),
+        ty: Math.round(Math.sin(ang) * dist),
+        rot: Math.round((Math.random() - 0.5) * 660),
+        size: Math.round(20 + Math.random() * 28),
+        delay: Math.round(Math.random() * 130),
+      });
+    }
+    // 색종이 48개
+    for (let i = 0; i < 48; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 90 + Math.random() * 250;
+      parts.push({
+        id: id++,
+        kind: "confetti",
+        tx: Math.round(Math.cos(ang) * dist),
+        ty: Math.round(Math.sin(ang) * dist),
+        rot: Math.round((Math.random() - 0.5) * 960),
+        size: Math.round(7 + Math.random() * 8),
+        delay: Math.round(Math.random() * 170),
+        color: COLORS[i % COLORS.length],
+        round: Math.random() < 0.4,
+        fall: Math.round(40 + Math.random() * 170),
+      });
+    }
+    setBurst(parts);
+    const t = setTimeout(() => setBurst([]), 1700);
     return () => clearTimeout(t);
   }, []);
 
@@ -79,25 +112,47 @@ export function Finale({
     >
       {burst.length > 0 && (
         <div className="fixed inset-0 z-[55] pointer-events-none overflow-hidden" aria-hidden>
-          {burst.map((p, i) => (
-            <span
-              key={i}
-              className="udon-burst"
-              style={
-                {
-                  left: "50%",
-                  top: "46%",
-                  fontSize: p.size,
-                  animationDelay: `${p.delay}ms`,
-                  "--tx": `${p.tx}px`,
-                  "--ty": `${p.ty}px`,
-                  "--rot": `${p.rot}deg`,
-                } as CSSProperties
-              }
-            >
-              🍜
-            </span>
-          ))}
+          {burst.map((p) =>
+            p.kind === "udon" ? (
+              <span
+                key={p.id}
+                className="udon-burst"
+                style={
+                  {
+                    left: "50%",
+                    top: "46%",
+                    fontSize: p.size,
+                    animationDelay: `${p.delay}ms`,
+                    "--tx": `${p.tx}px`,
+                    "--ty": `${p.ty}px`,
+                    "--rot": `${p.rot}deg`,
+                  } as CSSProperties
+                }
+              >
+                🍜
+              </span>
+            ) : (
+              <i
+                key={p.id}
+                className="confetti-burst"
+                style={
+                  {
+                    left: "50%",
+                    top: "46%",
+                    width: p.size,
+                    height: Math.round(p.size * 0.6),
+                    background: p.color,
+                    borderRadius: p.round ? "50%" : "2px",
+                    animationDelay: `${p.delay}ms`,
+                    "--tx": `${p.tx}px`,
+                    "--ty": `${p.ty}px`,
+                    "--rot": `${p.rot}deg`,
+                    "--fall": `${p.fall}px`,
+                  } as CSSProperties
+                }
+              />
+            ),
+          )}
         </div>
       )}
 

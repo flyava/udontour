@@ -242,8 +242,32 @@ textarea {
   position: absolute;
   line-height: 1;
   will-change: transform, opacity;
-  animation: udon-burst 0.9s cubic-bezier(0.15, 0.7, 0.25, 1) forwards;
+  animation: udon-burst 1.3s cubic-bezier(0.15, 0.7, 0.25, 1) forwards;
   filter: drop-shadow(0 3px 4px rgba(120, 70, 20, 0.25));
+}
+
+/* 색종이(confetti) — 터져서 퍼지고 살짝 떨어지며 회전 */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty) + var(--fall)))
+      rotate(var(--rot));
+    opacity: 0;
+  }
+}
+.confetti-burst {
+  position: absolute;
+  will-change: transform, opacity;
+  animation: confetti-burst 1.45s cubic-bezier(0.18, 0.66, 0.3, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -252,7 +276,8 @@ textarea {
   .sheet {
     animation: none !important;
   }
-  .udon-burst {
+  .udon-burst,
+  .confetti-burst {
     display: none;
   }
 }
