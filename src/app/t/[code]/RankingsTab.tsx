@@ -164,10 +164,6 @@ export function RankingsTab({
           </div>
         </div>
       )}
-
-      {/* 물림 곡선 */}
-      <h3 className="mt-6 mb-2 text-[15px] font-extrabold">물림 곡선</h3>
-      <FatigueCurve stats={[...stats].sort((a, b) => a.n - b.n)} />
     </div>
   );
 }
@@ -207,40 +203,3 @@ function WinnerCard({ stat }: { stat: BowlStat }) {
   );
 }
 
-function FatigueCurve({ stats }: { stats: BowlStat[] }) {
-  return (
-    <div className="card p-4">
-      <div className="flex items-end gap-2 h-36">
-        {stats.map((s) => (
-          <div key={s.n} className="flex-1 flex flex-col items-center justify-end gap-1 h-full">
-            <div className="flex items-end gap-0.5 h-full w-full justify-center">
-              <Bar value={s.overall} max={5} color="var(--primary)" />
-              <Bar value={s.condition ?? 0} max={5} color="var(--broth)" />
-            </div>
-            <span className="text-[11px]" style={{ color: "var(--ink-faint)" }}>
-              {s.n}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-4 mt-3 text-[12px]" style={{ color: "var(--ink-soft)" }}>
-        <span className="flex items-center gap-1.5">
-          <i className="w-3 h-3 rounded-sm inline-block" style={{ background: "var(--primary)" }} /> 평균 점수
-        </span>
-        <span className="flex items-center gap-1.5">
-          <i className="w-3 h-3 rounded-sm inline-block" style={{ background: "var(--broth)" }} /> 평균 피로
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function Bar({ value, max, color }: { value: number; max: number; color: string }) {
-  return (
-    <div
-      className="w-2.5 rounded-t"
-      style={{ height: `${Math.max(2, (value / max) * 100)}%`, background: color }}
-      title={value.toFixed(1)}
-    />
-  );
-}

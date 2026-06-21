@@ -110,43 +110,50 @@ export function Finale({
   );
 }
 
-const MAX_STACK = 9;
-const BOWL = 38;
+const BOWL = 36;
 const STEP = 15; // 그릇 간 세로 간격(겹침)
+const PER_COL = 9; // 한 열 최대 그릇 수 — 넘으면 옆에 새 열
+const COL_GAP = 8;
 
-/** 비운 그릇이 하나씩 떨어져 쌓이는 더미. count 가 올라갈 때마다 한 그릇씩 등장. */
+/** 비운 그릇이 하나씩 떨어져 쌓이는 더미. 열이 차면 옆 열로 — 전체 그릇 수만큼 모두 등장. */
 function BowlStack({ count, total }: { count: number; total: number }) {
-  const n = Math.min(total, MAX_STACK);
-  if (n === 0) return null;
+  if (total === 0) return null;
+  const cols = Math.ceil(total / PER_COL);
+  const perCol = Math.ceil(total / cols); // 열 균등 분배(예: 18→9+9, 10→5+5)
+  const height = BOWL + (perCol - 1) * STEP;
   return (
-    <div
-      className="relative mt-5"
-      style={{ width: 90, height: BOWL + (n - 1) * STEP }}
-      aria-hidden
-    >
-      {Array.from({ length: n }).map((_, i) => {
-        const shown = count > i;
-        const jitter = (i % 2 === 0 ? 1 : -1) * (2 + (i % 3)); // 살짝 흔들리는 단정한 스택
+    <div className="flex items-end justify-center mt-5" style={{ gap: COL_GAP, height }} aria-hidden>
+      {Array.from({ length: cols }).map((_, c) => {
+        const colCount = Math.min(perCol, total - c * perCol);
         return (
-          <span
-            key={i}
-            className="absolute leading-none select-none"
-            style={{
-              left: "50%",
-              bottom: i * STEP,
-              fontSize: BOWL,
-              zIndex: i,
-              opacity: shown ? 1 : 0,
-              transform: shown
-                ? `translate(calc(-50% + ${jitter}px), 0) rotate(${jitter * 0.5}deg)`
-                : "translate(-50%, -30px) scale(0.4)",
-              transition:
-                "opacity .18s ease, transform .42s cubic-bezier(0.2, 0.9, 0.3, 1.5)",
-              filter: "drop-shadow(0 4px 3px rgba(120, 70, 20, 0.2))",
-            }}
-          >
-            🍜
-          </span>
+          <div key={c} className="relative" style={{ width: BOWL, height }}>
+            {Array.from({ length: colCount }).map((_, r) => {
+              const idx = c * perCol + r; // 등장 순서(열을 채우고 다음 열)
+              const shown = count > idx;
+              const jitter = (idx % 2 === 0 ? 1 : -1) * (2 + (idx % 3));
+              return (
+                <span
+                  key={r}
+                  className="absolute leading-none select-none"
+                  style={{
+                    left: "50%",
+                    bottom: r * STEP,
+                    fontSize: BOWL,
+                    zIndex: r,
+                    opacity: shown ? 1 : 0,
+                    transform: shown
+                      ? `translate(calc(-50% + ${jitter}px), 0) rotate(${jitter * 0.5}deg)`
+                      : "translate(-50%, -30px) scale(0.4)",
+                    transition:
+                      "opacity .18s ease, transform .42s cubic-bezier(0.2, 0.9, 0.3, 1.5)",
+                    filter: "drop-shadow(0 4px 3px rgba(120, 70, 20, 0.2))",
+                  }}
+                >
+                  🍜
+                </span>
+              );
+            })}
+          </div>
         );
       })}
     </div>
