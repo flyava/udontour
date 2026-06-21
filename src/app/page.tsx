@@ -8,6 +8,8 @@ export default function Home() {
   const router = useRouter();
   const [team, setTeam] = useState("");
   const [count, setCount] = useState(3);
+  const [tripStart, setTripStart] = useState("");
+  const [tripEnd, setTripEnd] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function Home() {
     setBusy(true);
     setErr(null);
     try {
-      const tour = await createTour(team.trim(), count);
+      const tour = await createTour(team.trim(), count, tripStart || null, tripEnd || null);
       router.push(`/t/${tour.code}`);
     } catch (e) {
       setErr(msg(e));
@@ -71,6 +73,25 @@ export default function Home() {
           >
             +
           </button>
+        </div>
+
+        <label className="label mt-4">여행 기간 (선택)</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            className="field"
+            value={tripStart}
+            max={tripEnd || undefined}
+            onChange={(e) => setTripStart(e.target.value)}
+          />
+          <span style={{ color: "var(--ink-faint)" }}>–</span>
+          <input
+            type="date"
+            className="field"
+            value={tripEnd}
+            min={tripStart || undefined}
+            onChange={(e) => setTripEnd(e.target.value)}
+          />
         </div>
 
         <button

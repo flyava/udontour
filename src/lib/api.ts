@@ -3,12 +3,19 @@
 import { getSupabase, ensureAnonSession } from "./supabase";
 import type { Tour, Participant, Rating } from "./types";
 
-export async function createTour(team: string, count: number): Promise<Tour> {
+export async function createTour(
+  team: string,
+  count: number,
+  tripStart?: string | null,
+  tripEnd?: string | null,
+): Promise<Tour> {
   await ensureAnonSession();
   const sb = getSupabase();
   const { data, error } = await sb.rpc("create_tour", {
     p_team: team,
     p_count: count,
+    p_start: tripStart || null,
+    p_end: tripEnd || null,
   });
   if (error) throw error;
   return data as Tour;

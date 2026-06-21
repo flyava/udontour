@@ -201,6 +201,8 @@ function TourInner({
           myName={me.name}
           team={tour.team_name}
           totalSlots={servedBowls}
+          tripStart={tour.trip_start}
+          tripEnd={tour.trip_end}
           onOpenBowl={(n) => setSheetBowl(n)}
           onToast={flash}
         />

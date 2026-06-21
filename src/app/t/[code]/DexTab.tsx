@@ -12,6 +12,8 @@ export function DexTab({
   myName,
   team,
   totalSlots,
+  tripStart,
+  tripEnd,
   onOpenBowl,
   onToast,
 }: {
@@ -21,6 +23,8 @@ export function DexTab({
   myName: string;
   team: string;
   totalSlots: number;
+  tripStart: string | null;
+  tripEnd: string | null;
   onOpenBowl: (n: number) => void;
   onToast: (m: string) => void;
 }) {
@@ -65,42 +69,55 @@ export function DexTab({
   async function doShare(download: boolean) {
     setBusy(true);
     try {
-      const shareSlots: ShareSlot[] = slots.map((s) => ({
+      const allSlots: ShareSlot[] = slots.map((s) => ({
         n: s.n,
         filled: s.filled,
         label: s.shopRevealed || s.menu ? s.label : `${s.n}번째`,
         score: s.score,
         photo: s.photo,
       }));
-      const now = new Date();
-      const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(
-        now.getDate(),
-      ).padStart(2, "0")}`;
-      const blob = await renderDexCard({
-        team,
-        who: `${myName}의 우동 도감`,
-        slots: shareSlots,
-        cols,
-        footer: `${date} · ${myCount}그릇 · 평균 ${avg.toFixed(2)}`,
-      });
-      const file = new File([blob], "udontour-dex.png", { type: "image/png" });
+      const PAGE = 9;
+      const pages: ShareSlot[][] = [];
+      for (let i = 0; i < allSlots.length; i += PAGE) pages.push(allSlots.slice(i, i + PAGE));
+      const shareCols = dexCols(Math.min(allSlots.length, PAGE));
+      const footer = `${tripLabel(tripStart, tripEnd)} · ${myCount}그릇 · 평균 ${avg.toFixed(2)}`;
 
-      if (!download && canFileShare && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "모리 우동투어 도감",
-          text: `${myName}의 우동 도감 🍜`,
-        });
+      const blobs: Blob[] = [];
+      for (let pi = 0; pi < pages.length; pi++) {
+        blobs.push(
+          await renderDexCard({
+            brand: "@udon.tour",
+            team,
+            who: `${myName}의 우동 도감`,
+            slots: pages[pi],
+            cols: shareCols,
+            footer,
+            page: pages.length > 1 ? { index: pi + 1, count: pages.length } : undefined,
+          }),
+        );
+      }
+      const files = blobs.map(
+        (b, i) =>
+          new File([b], `udontour-dex${blobs.length > 1 ? `-${i + 1}` : ""}.png`, {
+            type: "image/png",
+          }),
+      );
+
+      if (!download && canFileShare && navigator.canShare?.({ files })) {
+        await navigator.share({ files, title: "우동 도감", text: `${myName}의 우동 도감 🍜` });
       } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "udontour-dex.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1500);
-        onToast("이미지를 저장했어요!");
+        for (let i = 0; i < blobs.length; i++) {
+          const url = URL.createObjectURL(blobs[i]);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = files[i].name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 500));
+        }
+        onToast(blobs.length > 1 ? `이미지 ${blobs.length}장을 저장했어요!` : "이미지를 저장했어요!");
       }
     } catch (e) {
       if ((e as Error)?.name !== "AbortError") onToast("공유 이미지를 만들지 못했어요.");
@@ -159,6 +176,23 @@ export function DexTab({
       {detail && <DexDetail slot={detail} onClose={() => setDetail(null)} onEdit={onOpenBowl} />}
     </div>
   );
+}
+
+function fmtYmd(d: string): string {
+  const [y, m, day] = d.split("-");
+  return `${y}.${m}.${day}`;
+}
+
+/** 여행 기간 라벨. 기간 없으면 오늘 날짜, 같은 해면 끝 날짜를 짧게. */
+function tripLabel(start: string | null, end: string | null): string {
+  if (!start) {
+    const n = new Date();
+    return `${n.getFullYear()}.${String(n.getMonth() + 1).padStart(2, "0")}.${String(n.getDate()).padStart(2, "0")}`;
+  }
+  if (!end || end === start) return fmtYmd(start);
+  const [ys, ms, ds] = start.split("-");
+  const [ye, me, de] = end.split("-");
+  return ys === ye ? `${ys}.${ms}.${ds} – ${me}.${de}` : `${fmtYmd(start)} – ${fmtYmd(end)}`;
 }
 
 function DexCell({ slot, onTap }: { slot: DexSlot; onTap: () => void }) {

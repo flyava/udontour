@@ -7,6 +7,8 @@ export type Tour = {
   max_bowl: number;
   started: boolean;
   finished: boolean;
+  trip_start: string | null; // 'YYYY-MM-DD'
+  trip_end: string | null;
   created_at: string;
 };
 

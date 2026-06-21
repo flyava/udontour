@@ -12,11 +12,13 @@ export type ShareSlot = {
 };
 
 export type ShareCardOpts = {
-  team: string; // 팀/투어 이름
+  brand: string; // 헤더 상단(예: "@udon.tour")
+  team: string; // 팀/투어 이름(푸터)
   who: string; // "{이름}의 우동 도감"
-  slots: ShareSlot[];
+  slots: ShareSlot[]; // 이 페이지의 슬롯만
   cols: number;
-  footer: string; // "2026.06.21 · 12그릇 · 평균 4.21"
+  footer: string; // "2026.06.20 – 06.22 · 18그릇 · 평균 4.10"
+  page?: { index: number; count: number }; // 다중 페이지일 때
 };
 
 const C = {
@@ -116,6 +118,37 @@ function truncate(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
   return t + "…";
 }
 
+/** 글자 단위로 maxLines 까지 줄바꿈(공백 없는 일본어 상호명도 처리). 넘치면 마지막 줄 말줄임. */
+function wrapLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number,
+  maxLines: number,
+): string[] {
+  const lines: string[] = [];
+  let cur = "";
+  for (const ch of [...text]) {
+    if (ctx.measureText(cur + ch).width > maxW && cur) {
+      lines.push(cur);
+      cur = ch;
+      if (lines.length === maxLines) break;
+    } else {
+      cur += ch;
+    }
+  }
+  if (lines.length < maxLines && cur) lines.push(cur);
+  if (lines.length === maxLines) {
+    // 마지막 줄에 남은 글자가 더 있으면 말줄임
+    const used = lines.join("").length;
+    if (used < [...text].length) {
+      let last = lines[maxLines - 1];
+      while (last.length > 1 && ctx.measureText(last + "…").width > maxW) last = last.slice(0, -1);
+      lines[maxLines - 1] = last + "…";
+    }
+  }
+  return lines;
+}
+
 function blobOf(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("이미지 생성 실패"))), "image/png"),
@@ -156,11 +189,25 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
   ctx.font = `900 86px ${FONT}`;
   ctx.fillText("🍜", W / 2, 132);
   ctx.fillStyle = C.primaryDark;
-  ctx.font = `800 34px ${FONT}`;
-  ctx.fillText("모리 우동투어", W / 2, 186);
+  ctx.font = `800 36px ${FONT}`;
+  ctx.fillText(opts.brand, W / 2, 186);
   ctx.fillStyle = C.ink;
   ctx.font = `900 56px ${FONT}`;
   ctx.fillText(truncate(ctx, opts.who, W - PAD * 2), W / 2, 244);
+
+  // 페이지 표시(다중 페이지)
+  if (opts.page && opts.page.count > 1) {
+    const txt = `${opts.page.index} / ${opts.page.count}`;
+    ctx.font = `800 26px ${FONT}`;
+    const pw = ctx.measureText(txt).width + 36;
+    const px = W - PAD - pw;
+    roundRect(ctx, px, 48, pw, 46, 23);
+    ctx.fillStyle = C.bg2;
+    ctx.fill();
+    ctx.fillStyle = C.inkSoft;
+    ctx.textAlign = "center";
+    ctx.fillText(txt, px + pw / 2, 79);
+  }
 
   // 격자
   const photos = await Promise.all(
@@ -194,20 +241,24 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
         ctx.font = `400 ${Math.round(cell * 0.42)}px ${FONT}`;
         ctx.fillText("🍜", x + cell / 2, y + cell * 0.56);
       }
-      // 하단 그라데이션 + 라벨
-      const sh = ctx.createLinearGradient(x, y + cell * 0.45, x, y + cell);
-      sh.addColorStop(0, "rgba(0,0,0,0)");
-      sh.addColorStop(1, "rgba(20,12,4,0.78)");
-      ctx.fillStyle = sh;
-      ctx.fillRect(x, y + cell * 0.45, cell, cell * 0.55);
+      // 라벨(최대 2줄) — 긴 일본어 상호명 대응
       ctx.textAlign = "left";
+      const fs = Math.max(20, Math.round(cell * 0.092));
+      ctx.font = `800 ${fs}px ${FONT}`;
+      const lines = wrapLines(ctx, s.label, cell - 28, 2);
+      const lh = Math.round(fs * 1.2);
+      // 하단 그라데이션(줄 수에 맞춰 높이 조절)
+      const gradTop = y + cell - (lines.length * lh + 24);
+      const sh = ctx.createLinearGradient(x, Math.min(gradTop, y + cell * 0.5), x, y + cell);
+      sh.addColorStop(0, "rgba(0,0,0,0)");
+      sh.addColorStop(1, "rgba(20,12,4,0.82)");
+      ctx.fillStyle = sh;
+      ctx.fillRect(x, Math.min(gradTop, y + cell * 0.5), cell, cell);
       ctx.fillStyle = "#fff";
-      ctx.font = `800 ${Math.max(20, Math.round(cell * 0.13))}px ${FONT}`;
-      ctx.fillText(
-        truncate(ctx, s.label, cell - 24),
-        x + 14,
-        y + cell - 20,
-      );
+      lines.forEach((ln, li) => {
+        const baseY = y + cell - 16 - (lines.length - 1 - li) * lh;
+        ctx.fillText(ln, x + 14, baseY);
+      });
       // 점수 배지
       if (s.score != null) {
         const bw = Math.round(cell * 0.36);
