@@ -103,6 +103,33 @@ export default function Home() {
           {err}
         </p>
       )}
+
+      <footer className="mt-12 pt-6 text-center" style={{ borderTop: "1px solid var(--line)" }}>
+        <a
+          href="https://instagram.com/udon.tour"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[15px] font-extrabold"
+          style={{ color: "var(--primary-dark)" }}
+        >
+          @udon.tour
+        </a>
+        <p className="mt-1.5 text-[13px]" style={{ color: "var(--ink-soft)" }}>
+          제작자 ·{" "}
+          <a
+            href="https://instagram.com/traveltv.kr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            @traveltv.kr
+          </a>
+        </p>
+        <p className="mt-3 text-[11px]" style={{ color: "var(--ink-faint)" }}>
+          © {new Date().getFullYear()} 모리 우동투어. All rights reserved.
+        </p>
+      </footer>
     </main>
   );
 }
