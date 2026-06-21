@@ -150,8 +150,8 @@ export function RankingsTab({
         })}
       </div>
 
-      {/* 또 가고 싶은 */}
-      {revisit && revisit.revisitRate > 0 && (
+      {/* 또 가고 싶은 — 2명 이상일 때만 의미가 있어 표시(솔로는 본인 yes/no라 무의미) */}
+      {participants.length >= 2 && revisit && revisit.revisitRate > 0 && (
         <div className="card p-4 mt-3">
           <div className="text-[13px] font-bold" style={{ color: "var(--ink-soft)" }}>
             💘 또 가고 싶은 그릇

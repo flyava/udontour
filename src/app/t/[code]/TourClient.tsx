@@ -186,6 +186,7 @@ function TourInner({
           onFinish={async () => {
             try {
               await finishTour(tourId, true);
+              setShowFinale(true); // 다시 눌러도 항상 결산이 열리도록
             } catch (e) {
               flash(errMsg(e));
             }
@@ -474,6 +475,9 @@ function EvalTab(props: {
               결과 발표 🎉
             </button>
           </div>
+          <p className="text-[12px] mt-2" style={{ color: "var(--ink-soft)" }}>
+            전원이 입력하지 않아도, 모든 그릇을 채우지 않아도 언제든 눌러 결산을 볼 수 있어요. 순위 탭은 실시간 중간 집계예요.
+          </p>
           <CountAdjust need={need} onSetCount={onSetCount} />
         </div>
       )}
