@@ -26,6 +26,63 @@ export function myRanked(
     .sort((a, b) => b.score - a.score || a.n - b.n);
 }
 
+export type DexSlot = {
+  n: number;
+  filled: boolean;
+  label: string;
+  score: number | null;
+  photo: string | null;
+  menu: string | null;
+  shopRevealed: boolean;
+  taste: number;
+  noodle: number;
+  price: number;
+  visual: number;
+  condition: number | null;
+  revisit: boolean | null;
+  note: string | null;
+};
+
+/** 도감 격자의 열 수: 그릇 수의 제곱근(정사각형에 가깝게), 모바일 고려 최대 5열 */
+export function dexCols(n: number): number {
+  return Math.min(5, Math.max(1, Math.ceil(Math.sqrt(n))));
+}
+
+/** 1..totalSlots 까지의 내 도감 슬롯. 내가 평가한 그릇은 filled=true */
+export function myDex(
+  bowls: Bowl[],
+  ratings: Rating[],
+  participantId: string,
+  totalSlots: number,
+): DexSlot[] {
+  const bowlByN = new Map(bowls.map((b) => [b.n, b]));
+  const mine = new Map(
+    ratings.filter((r) => r.participant_id === participantId).map((r) => [r.bowl_n, r]),
+  );
+  const slots: DexSlot[] = [];
+  for (let n = 1; n <= totalSlots; n++) {
+    const b = bowlByN.get(n);
+    const r = mine.get(n);
+    slots.push({
+      n,
+      filled: !!r,
+      label: b ? bowlLabel(b) : `${n}번째 우동`,
+      score: r ? avgScore(r) : null,
+      photo: r?.photo_urls?.[0] ?? null,
+      menu: r?.menu ?? b?.menu ?? null,
+      shopRevealed: !!b?.shop_name,
+      taste: r?.taste ?? 0,
+      noodle: r?.noodle ?? 0,
+      price: r?.price ?? 0,
+      visual: r?.visual ?? 0,
+      condition: r?.condition ?? null,
+      revisit: r?.revisit ?? null,
+      note: r?.note ?? null,
+    });
+  }
+  return slots;
+}
+
 export type BowlStat = {
   n: number;
   label: string;

@@ -18,9 +18,11 @@ import { useTourData, bowlSubmitCount } from "@/lib/useTour";
 import { RatingSheet } from "./RatingSheet";
 import { RevealSheet } from "./RevealSheet";
 import { RankingsTab } from "./RankingsTab";
+import { DexTab } from "./DexTab";
 import { Finale } from "./Finale";
 
 type Phase = "loading" | "onboarding" | "ready";
+type TabKey = "eval" | "rank" | "dex";
 
 export function TourClient({ code }: { code: string }) {
   const [phase, setPhase] = useState<Phase>("loading");
@@ -86,7 +88,7 @@ function TourInner({
   code: string;
 }) {
   const { tour, participants, bowls, ratings, ready } = useTourData(tourId);
-  const [tab, setTab] = useState<"eval" | "rank">("eval");
+  const [tab, setTab] = useState<TabKey>("eval");
   const [sheetBowl, setSheetBowl] = useState<number | null>(null);
   const [revealOpen, setRevealOpen] = useState(false);
   const [showFinale, setShowFinale] = useState(false);
@@ -115,6 +117,13 @@ function TourInner({
   const need = tour.participant_count;
   const gateOpen = submitted >= need;
   const myRating = (n: number) => ratings.find((r) => r.participant_id === me.id && r.bowl_n === n) ?? null;
+  const servedBowls = Math.max(
+    tour.max_bowl ?? 0,
+    cur,
+    ...bowls.map((b) => b.n),
+    ...ratings.filter((r) => r.participant_id === me.id).map((r) => r.bowl_n),
+    0,
+  );
   const bowlByN = (n: number): Bowl =>
     bowls.find((b) => b.n === n) ?? { id: `tmp-${n}`, tour_id: tourId, n, menu: null, shop_name: null };
   const sheetBowlObj = sheetBowl != null ? bowlByN(sheetBowl) : null;
@@ -182,8 +191,19 @@ function TourInner({
             }
           }}
         />
-      ) : (
+      ) : tab === "rank" ? (
         <RankingsTab bowls={bowls} ratings={ratings} participants={participants} meId={me.id} />
+      ) : (
+        <DexTab
+          bowls={bowls}
+          ratings={ratings}
+          meId={me.id}
+          myName={me.name}
+          team={tour.team_name}
+          totalSlots={servedBowls}
+          onOpenBowl={(n) => setSheetBowl(n)}
+          onToast={flash}
+        />
       )}
 
       {sheetBowlObj && (
@@ -272,10 +292,11 @@ function Header({
   );
 }
 
-function Tabs({ tab, setTab }: { tab: "eval" | "rank"; setTab: (t: "eval" | "rank") => void }) {
+function Tabs({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
+  const labels: Record<TabKey, string> = { eval: "평가", rank: "순위", dex: "도감" };
   return (
     <div className="flex gap-1 p-1 rounded-full mb-3" style={{ background: "var(--bg-2)" }}>
-      {(["eval", "rank"] as const).map((t) => (
+      {(["eval", "rank", "dex"] as const).map((t) => (
         <button
           key={t}
           onClick={() => setTab(t)}
@@ -286,7 +307,7 @@ function Tabs({ tab, setTab }: { tab: "eval" | "rank"; setTab: (t: "eval" | "ran
             boxShadow: tab === t ? "var(--shadow)" : "none",
           }}
         >
-          {t === "eval" ? "평가" : "순위"}
+          {labels[t]}
         </button>
       ))}
     </div>
