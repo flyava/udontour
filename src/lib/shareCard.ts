@@ -158,17 +158,21 @@ function blobOf(canvas: HTMLCanvasElement): Promise<Blob> {
 export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
   await ensureFonts();
 
-  const W = 1080;
-  const PAD = 64;
-  const GAP = 22;
+  // 인스타그램 세로(4:5) 고정 캔버스
+  const W = 1200;
+  const H = 1500;
+  const PAD = 80;
+  const GAP = 24;
   const cols = Math.max(1, opts.cols);
   const rows = Math.ceil(opts.slots.length / cols);
   const cell = Math.floor((W - PAD * 2 - GAP * (cols - 1)) / cols);
 
-  const headerH = 300;
+  const headerBottom = 300;
+  const footerTop = H - 150;
+  const gridW = cols * cell + (cols - 1) * GAP;
   const gridH = rows * cell + (rows - 1) * GAP;
-  const footerH = 150;
-  const H = headerH + gridH + footerH;
+  const gridX = Math.round((W - gridW) / 2);
+  const gridTop = Math.round(headerBottom + Math.max(0, (footerTop - headerBottom - gridH) / 2));
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -217,8 +221,8 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
   opts.slots.forEach((s, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const x = PAD + col * (cell + GAP);
-    const y = headerH + row * (cell + GAP);
+    const x = gridX + col * (cell + GAP);
+    const y = gridTop + row * (cell + GAP);
     const rad = Math.max(16, cell * 0.16);
 
     ctx.save();
@@ -293,8 +297,8 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
     ctx.stroke();
   });
 
-  // 푸터
-  const fy = headerH + gridH + 64;
+  // 푸터(하단 고정)
+  const fy = H - 92;
   ctx.textAlign = "center";
   ctx.fillStyle = C.inkSoft;
   ctx.font = `700 30px ${FONT}`;

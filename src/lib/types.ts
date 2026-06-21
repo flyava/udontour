@@ -76,6 +76,14 @@ export function udonPhotos(r: Pick<Rating, "photo_urls" | "photo_kinds">): strin
     .map((p) => p.url);
 }
 
+export type Skip = {
+  id: string;
+  tour_id: string;
+  participant_id: string;
+  bowl_n: number;
+  created_at: string;
+};
+
 export const AXES = [
   { key: "taste", label: "맛" },
   { key: "noodle", label: "면발" },

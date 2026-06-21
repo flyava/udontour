@@ -77,9 +77,11 @@ export function DexTab({
         photo: s.photo,
       }));
       const PAGE = 9;
+      const pageCount = Math.ceil(allSlots.length / PAGE);
+      const perPage = Math.ceil(allSlots.length / pageCount); // 페이지 균등 분배(10→5+5)
       const pages: ShareSlot[][] = [];
-      for (let i = 0; i < allSlots.length; i += PAGE) pages.push(allSlots.slice(i, i + PAGE));
-      const shareCols = dexCols(Math.min(allSlots.length, PAGE));
+      for (let i = 0; i < allSlots.length; i += perPage) pages.push(allSlots.slice(i, i + perPage));
+      const shareCols = dexCols(Math.min(perPage, allSlots.length));
       const footer = `${tripLabel(tripStart, tripEnd)} · ${myCount}그릇 · 평균 ${avg.toFixed(2)}`;
 
       const blobs: Blob[] = [];

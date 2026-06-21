@@ -8,15 +8,19 @@ export function Finale({
   bowls,
   ratings,
   participants,
+  meId,
   onClose,
 }: {
   bowls: Bowl[];
   ratings: Rating[];
   participants: Participant[];
+  meId: string;
   onClose: () => void;
 }) {
   const stats = bowlStats(bowls, ratings, participants);
-  const total = stats.length; // 비운 그릇 = 평가가 있는 distinct 그릇 수(평가 개수 아님)
+  const total = stats.length; // 팀이 비운 그릇 = 평가가 있는 distinct 그릇 수(평가 개수 아님)
+  const mine = ratings.filter((r) => r.participant_id === meId).length; // 내가 먹은(평가한) 그릇
+  const isGroup = participants.length >= 2;
   const winner = ranked(stats)[0] ?? null;
 
   const [count, setCount] = useState(0);
@@ -68,6 +72,12 @@ export function Finale({
           그릇
         </div>
       </div>
+
+      {isGroup && count >= total && (
+        <div className="mt-2 text-[15px] font-bold" style={{ color: "var(--ink-soft)" }}>
+          🍜 그중 내가 <span style={{ color: "var(--primary-dark)" }}>{mine}</span>그릇
+        </div>
+      )}
 
       <BowlStack count={count} total={total} />
 

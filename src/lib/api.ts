@@ -115,6 +115,29 @@ export async function finishTour(tourId: string, finished = true) {
   if (error) throw error;
 }
 
+/** 배불러서 이 그릇 패스 — 게이트에서 인원으로 인정됨 */
+export async function skipBowl(tourId: string, participantId: string, bowlN: number) {
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("skips")
+    .upsert(
+      { tour_id: tourId, participant_id: participantId, bowl_n: bowlN },
+      { onConflict: "participant_id,bowl_n" },
+    );
+  if (error) throw error;
+}
+
+/** 패스 취소 */
+export async function unskipBowl(participantId: string, bowlN: number) {
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("skips")
+    .delete()
+    .eq("participant_id", participantId)
+    .eq("bowl_n", bowlN);
+  if (error) throw error;
+}
+
 export type RatingInput = {
   taste: number;
   noodle: number;

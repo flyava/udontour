@@ -13,6 +13,8 @@ import {
   finishTour,
   setCount,
   setMenu,
+  skipBowl,
+  unskipBowl,
 } from "@/lib/api";
 import { useTourData, bowlSubmitCount } from "@/lib/useTour";
 import { RatingSheet } from "./RatingSheet";
@@ -87,7 +89,7 @@ function TourInner({
   setMe: (p: Participant) => void;
   code: string;
 }) {
-  const { tour, participants, bowls, ratings, ready } = useTourData(tourId);
+  const { tour, participants, bowls, ratings, skips, ready } = useTourData(tourId);
   const [tab, setTab] = useState<TabKey>("eval");
   const [sheetBowl, setSheetBowl] = useState<number | null>(null);
   const [revealOpen, setRevealOpen] = useState(false);
@@ -113,10 +115,11 @@ function TourInner({
 
   const isHost = me.is_host;
   const cur = tour.current_bowl;
-  const submitted = cur > 0 ? bowlSubmitCount(ratings, cur) : 0;
+  const submitted = cur > 0 ? bowlSubmitCount(ratings, skips, cur) : 0;
   const need = tour.participant_count;
   const gateOpen = submitted >= need;
   const myRating = (n: number) => ratings.find((r) => r.participant_id === me.id && r.bowl_n === n) ?? null;
+  const mySkipped = (n: number) => skips.some((s) => s.participant_id === me.id && s.bowl_n === n);
   const servedBowls = Math.max(
     tour.max_bowl ?? 0,
     cur,
@@ -146,6 +149,21 @@ function TourInner({
           need={need}
           gateOpen={gateOpen}
           myRating={myRating}
+          mySkippedCur={mySkipped(cur)}
+          onSkip={async () => {
+            try {
+              await skipBowl(tourId, me.id, cur);
+            } catch (e) {
+              flash(errMsg(e));
+            }
+          }}
+          onUnskip={async () => {
+            try {
+              await unskipBowl(me.id, cur);
+            } catch (e) {
+              flash(errMsg(e));
+            }
+          }}
           onOpenBowl={(n) => setSheetBowl(n)}
           onStart={async () => {
             try {
@@ -216,7 +234,10 @@ function TourInner({
           bowl={sheetBowlObj}
           existing={myRating(sheetBowlObj.n)}
           onClose={() => setSheetBowl(null)}
-          onSaved={() => flash("저장했어요!")}
+          onSaved={() => {
+            flash("저장했어요!");
+            if (sheetBowl != null && mySkipped(sheetBowl)) unskipBowl(me.id, sheetBowl).catch(() => {});
+          }}
         />
       )}
 
@@ -234,6 +255,7 @@ function TourInner({
           bowls={bowls}
           ratings={ratings}
           participants={participants}
+          meId={me.id}
           onClose={() => setShowFinale(false)}
         />
       )}
@@ -326,6 +348,9 @@ function EvalTab(props: {
   need: number;
   gateOpen: boolean;
   myRating: (n: number) => unknown;
+  mySkippedCur: boolean;
+  onSkip: () => void;
+  onUnskip: () => void;
   onOpenBowl: (n: number) => void;
   onStart: () => void;
   onNext: () => void;
@@ -344,6 +369,9 @@ function EvalTab(props: {
     need,
     gateOpen,
     myRating,
+    mySkippedCur,
+    onSkip,
+    onUnskip,
     onOpenBowl,
     onStart,
     onNext,
@@ -421,12 +449,34 @@ function EvalTab(props: {
 
         {isHost && <MenuEditor n={cur} menu={curBowl?.menu ?? ""} onSetMenu={onSetMenu} />}
 
-        <button
-          className={`btn w-full mt-4 ${mineCur ? "btn-ghost" : "btn-primary"}`}
-          onClick={() => onOpenBowl(cur)}
-        >
-          {mineCur ? "✓ 내 평가 수정" : "이 우동 평가하기"}
-        </button>
+        {mineCur ? (
+          <button className="btn btn-ghost w-full mt-4" onClick={() => onOpenBowl(cur)}>
+            ✓ 내 평가 수정
+          </button>
+        ) : mySkippedCur ? (
+          <div className="mt-4 text-center">
+            <div className="text-[14px] font-bold" style={{ color: "var(--ink-soft)" }}>
+              🥵 이 그릇은 패스했어요
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button className="btn btn-line flex-1" onClick={onUnskip}>
+                패스 취소
+              </button>
+              <button className="btn btn-primary flex-1" onClick={() => onOpenBowl(cur)}>
+                그래도 평가
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <button className="btn btn-primary w-full mt-4" onClick={() => onOpenBowl(cur)}>
+              이 우동 평가하기
+            </button>
+            <button className="btn btn-line w-full mt-2" onClick={onSkip}>
+              🥵 배불러서 패스
+            </button>
+          </>
+        )}
       </div>
 
       {/* 호스트 진행 컨트롤 */}
