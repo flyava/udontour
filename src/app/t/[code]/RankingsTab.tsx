@@ -1,7 +1,7 @@
 "use client";
 
 import type { Bowl, Rating, Participant } from "@/lib/types";
-import { bowlStats, ranked, categoryWinner, revisitWinner, myRanked, type BowlStat } from "@/lib/aggregate";
+import { bowlStats, ranked, categoryWinner, myRanked, type BowlStat } from "@/lib/aggregate";
 
 export function RankingsTab({
   bowls,
@@ -34,7 +34,6 @@ export function RankingsTab({
     { key: "price" as const, label: "가성비", emoji: "💸" },
     { key: "visual" as const, label: "비주얼", emoji: "✨" },
   ];
-  const revisit = revisitWinner(stats);
   const maxOverall = Math.max(...stats.map((s) => s.overall), 5);
 
   return (
@@ -150,20 +149,6 @@ export function RankingsTab({
         })}
       </div>
 
-      {/* 또 가고 싶은 — 2명 이상일 때만 의미가 있어 표시(솔로는 본인 yes/no라 무의미) */}
-      {participants.length >= 2 && revisit && revisit.revisitRate > 0 && (
-        <div className="card p-4 mt-3">
-          <div className="text-[13px] font-bold" style={{ color: "var(--ink-soft)" }}>
-            💘 또 가고 싶은 그릇
-          </div>
-          <div className="flex items-baseline justify-between mt-1">
-            <span className="font-extrabold">{revisit.label}</span>
-            <span className="font-extrabold" style={{ color: "var(--primary-dark)" }}>
-              {Math.round(revisit.revisitRate * 100)}%
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

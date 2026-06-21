@@ -173,8 +173,3 @@ export function categoryWinner(
   if (stats.length === 0) return null;
   return [...stats].sort((a, b) => b[key] - a[key])[0];
 }
-
-export function revisitWinner(stats: BowlStat[]): BowlStat | null {
-  if (stats.length === 0) return null;
-  return [...stats].sort((a, b) => b.revisitRate - a.revisitRate)[0];
-}
