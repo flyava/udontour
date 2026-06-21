@@ -223,10 +223,36 @@ textarea {
   margin: 10px auto 6px;
 }
 
+/* 결산 인트로 — 우동 폭죽 */
+@keyframes udon-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1)
+      rotate(var(--rot));
+    opacity: 0;
+  }
+}
+.udon-burst {
+  position: absolute;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: udon-burst 0.9s cubic-bezier(0.15, 0.7, 0.25, 1) forwards;
+  filter: drop-shadow(0 3px 4px rgba(120, 70, 20, 0.25));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pop-in,
   .rise,
   .sheet {
     animation: none !important;
+  }
+  .udon-burst {
+    display: none;
   }
 }

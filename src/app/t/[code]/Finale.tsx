@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Bowl, Rating, Participant } from "@/lib/types";
 import { bowlStats, ranked } from "@/lib/aggregate";
 
@@ -25,6 +25,29 @@ export function Finale({
 
   const [count, setCount] = useState(0);
   const [showWinner, setShowWinner] = useState(false);
+  const [burst, setBurst] = useState<
+    { tx: number; ty: number; rot: number; size: number; delay: number }[]
+  >([]);
+
+  // 결산 오픈 시 우동이 폭죽처럼 터지는 짧은 인트로(1초 이내)
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setBurst(
+      Array.from({ length: 22 }, (_, i) => {
+        const ang = (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+        const dist = 130 + Math.random() * 200;
+        return {
+          tx: Math.round(Math.cos(ang) * dist),
+          ty: Math.round(Math.sin(ang) * dist),
+          rot: Math.round((Math.random() - 0.5) * 640),
+          size: Math.round(22 + Math.random() * 28),
+          delay: Math.round(Math.random() * 90),
+        };
+      }),
+    );
+    const t = setTimeout(() => setBurst([]), 1000);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const reduce =
@@ -54,6 +77,30 @@ export function Finale({
       className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
       style={{ background: "radial-gradient(circle at 50% 30%, #fff3df, var(--bg))" }}
     >
+      {burst.length > 0 && (
+        <div className="fixed inset-0 z-[55] pointer-events-none overflow-hidden" aria-hidden>
+          {burst.map((p, i) => (
+            <span
+              key={i}
+              className="udon-burst"
+              style={
+                {
+                  left: "50%",
+                  top: "46%",
+                  fontSize: p.size,
+                  animationDelay: `${p.delay}ms`,
+                  "--tx": `${p.tx}px`,
+                  "--ty": `${p.ty}px`,
+                  "--rot": `${p.rot}deg`,
+                } as CSSProperties
+              }
+            >
+              🍜
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="text-[15px] font-extrabold tracking-widest" style={{ color: "var(--ink-soft)" }}>
         오늘의 우동투어 결산
       </div>
