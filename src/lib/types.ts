@@ -42,9 +42,37 @@ export type Rating = {
   menu: string | null;
   note: string | null;
   photo_urls: string[];
+  photo_kinds: string[]; // photo_urls[i] 의 분류(PhotoKind). 옛 데이터는 비어있을 수 있음
   created_at: string;
   updated_at: string;
 };
+
+export const MAX_PHOTOS = 5;
+
+export type PhotoKind = "sign" | "menu" | "udon";
+
+export const PHOTO_KINDS: { key: PhotoKind; label: string; emoji: string; hint?: string }[] = [
+  { key: "sign", label: "가게 외관·간판", emoji: "🏠" },
+  { key: "menu", label: "메뉴판", emoji: "📋" },
+  { key: "udon", label: "우동", emoji: "🍜", hint: "도감에 모여요" },
+];
+
+/** photo_urls + photo_kinds 를 {url, kind} 쌍으로 묶는다. */
+export function zipPhotos(
+  r: Pick<Rating, "photo_urls" | "photo_kinds">,
+): { url: string; kind: PhotoKind }[] {
+  return r.photo_urls.map((url, i) => ({
+    url,
+    kind: (r.photo_kinds?.[i] as PhotoKind) ?? "udon",
+  }));
+}
+
+/** '우동'으로 태그된 사진 URL만(도감용). */
+export function udonPhotos(r: Pick<Rating, "photo_urls" | "photo_kinds">): string[] {
+  return zipPhotos(r)
+    .filter((p) => p.kind === "udon")
+    .map((p) => p.url);
+}
 
 export const AXES = [
   { key: "taste", label: "맛" },

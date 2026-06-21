@@ -1,5 +1,5 @@
 import type { Bowl, Rating, Participant } from "./types";
-import { avgScore, bowlLabel } from "./types";
+import { avgScore, bowlLabel, udonPhotos } from "./types";
 
 export type MyBowlScore = {
   n: number;
@@ -31,7 +31,8 @@ export type DexSlot = {
   filled: boolean;
   label: string;
   score: number | null;
-  photo: string | null;
+  photo: string | null; // 도감 셀 대표 = 첫 우동 사진
+  udonPhotos: string[]; // 우동으로 태그된 사진 전체(상세 갤러리)
   menu: string | null;
   shopRevealed: boolean;
   mapUrl: string | null;
@@ -64,12 +65,14 @@ export function myDex(
   for (let n = 1; n <= totalSlots; n++) {
     const b = bowlByN.get(n);
     const r = mine.get(n);
+    const udons = r ? udonPhotos(r) : [];
     slots.push({
       n,
       filled: !!r,
       label: b ? bowlLabel(b) : `${n}번째 우동`,
       score: r ? avgScore(r) : null,
-      photo: r?.photo_urls?.[0] ?? null,
+      photo: udons[0] ?? null,
+      udonPhotos: udons,
       menu: r?.menu ?? b?.menu ?? null,
       shopRevealed: !!b?.shop_name,
       mapUrl: b?.map_url ?? null,
@@ -136,7 +139,8 @@ export function bowlStats(
       const conds = rs.map((r) => r.condition).filter((c): c is number => c != null);
       const revisits = rs.map((r) => r.revisit).filter((v): v is boolean => v != null);
       const best = [...rs].sort((a, b2) => avgScore(b2) - avgScore(a))[0];
-      const photo = rs.flatMap((r) => r.photo_urls)[0] ?? null;
+      // 우동 사진 우선, 없으면 아무 사진
+      const photo = rs.flatMap((r) => udonPhotos(r))[0] ?? rs.flatMap((r) => r.photo_urls)[0] ?? null;
       const noteR = rs.find((r) => r.note && r.id === best.id) ?? rs.find((r) => r.note);
       return {
         n: b.n,

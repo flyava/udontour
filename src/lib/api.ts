@@ -118,6 +118,7 @@ export type RatingInput = {
   menu: string | null;
   note: string | null;
   photo_urls: string[];
+  photo_kinds: string[];
 };
 
 export async function upsertRating(
@@ -150,12 +151,13 @@ export async function uploadPhoto(
   tourId: string,
   bowlN: number,
   participantId: string,
+  kind: string,
   idx: number,
   file: File,
 ): Promise<string> {
   const blob = await downscale(file, 900, 0.6);
   const sb = getSupabase();
-  const path = `tour_${tourId}/bowl_${bowlN}/${participantId}_${idx}.jpg`;
+  const path = `tour_${tourId}/bowl_${bowlN}/${participantId}_${kind}_${idx}.jpg`;
   const { error } = await sb.storage
     .from("bowl-photos")
     .upload(path, blob, { upsert: true, contentType: "image/jpeg" });

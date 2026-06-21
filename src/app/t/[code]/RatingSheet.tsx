@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Bowl, Rating } from "@/lib/types";
+import type { Bowl, Rating, PhotoKind } from "@/lib/types";
+import { MAX_PHOTOS, PHOTO_KINDS } from "@/lib/types";
 import { upsertRating, uploadPhoto, type RatingInput } from "@/lib/api";
 import { HalfSlider } from "./HalfSlider";
 
@@ -28,7 +29,12 @@ export function RatingSheet({
   const [revisit, setRevisit] = useState<boolean | null>(existing?.revisit ?? null);
   const [menu, setMenu] = useState(existing?.menu ?? bowl.menu ?? "");
   const [note, setNote] = useState(existing?.note ?? "");
-  const [photos, setPhotos] = useState<string[]>(existing?.photo_urls ?? []);
+  const [photos, setPhotos] = useState<{ url: string; kind: PhotoKind }[]>(
+    (existing?.photo_urls ?? []).map((url, i) => ({
+      url,
+      kind: (existing?.photo_kinds?.[i] as PhotoKind) ?? "udon",
+    })),
+  );
   const [busy, setBusy] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
 
@@ -39,14 +45,18 @@ export function RatingSheet({
 
   const allAxes = taste > 0 && noodle > 0 && price > 0 && visual > 0;
 
-  async function onPick(files: FileList | null) {
+  async function onPick(files: FileList | null, kind: PhotoKind) {
     if (!files || files.length === 0) return;
-    const slots = Math.min(2 - photos.length, files.length);
+    const room = Math.min(MAX_PHOTOS - photos.length, files.length);
+    if (room <= 0) {
+      setWarn(`사진은 최대 ${MAX_PHOTOS}장까지예요.`);
+      return;
+    }
     setWarn(null);
-    for (let i = 0; i < slots; i++) {
+    for (let i = 0; i < room; i++) {
       try {
-        const url = await uploadPhoto(tourId, bowl.n, participantId, photos.length + i, files[i]);
-        setPhotos((p) => [...p, url]);
+        const url = await uploadPhoto(tourId, bowl.n, participantId, kind, photos.length + i, files[i]);
+        setPhotos((p) => [...p, { url, kind }]);
       } catch {
         setWarn("사진 업로드에 실패했어요. 점수는 저장돼요.");
       }
@@ -65,7 +75,8 @@ export function RatingSheet({
       revisit,
       menu: menu.trim() || null,
       note: note.trim() || null,
-      photo_urls: photos,
+      photo_urls: photos.map((p) => p.url),
+      photo_kinds: photos.map((p) => p.kind),
     };
     try {
       await upsertRating(tourId, participantId, bowl.n, input);
@@ -137,32 +148,64 @@ export function RatingSheet({
           </button>
         </div>
 
-        <label className="label mt-5">사진 (최대 2장)</label>
-        <div className="flex gap-2">
-          {photos.map((u, i) => (
-            <div key={i} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u} alt="" className="w-20 h-20 rounded-xl object-cover" />
-              <button
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/70 text-white text-xs"
-                onClick={() => setPhotos((p) => p.filter((_, k) => k !== i))}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          {photos.length < 2 && (
-            <label className="w-20 h-20 rounded-xl border-2 border-dashed flex items-center justify-center text-2xl cursor-pointer"
-              style={{ borderColor: "var(--line)", color: "var(--ink-faint)" }}>
-              +
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => onPick(e.target.files)}
-              />
-            </label>
-          )}
+        <div className="flex items-baseline justify-between mt-5">
+          <label className="label mb-0">사진 (최대 {MAX_PHOTOS}장)</label>
+          <span className="text-[12px] font-bold tabular-nums" style={{ color: "var(--ink-faint)" }}>
+            {photos.length}/{MAX_PHOTOS}
+          </span>
+        </div>
+        <p className="text-[12px] mb-2" style={{ color: "var(--ink-faint)" }}>
+          간판·메뉴·우동을 남겨보세요. 우동 사진은 도감에 모여요.
+        </p>
+        <div className="flex flex-col gap-3">
+          {PHOTO_KINDS.map((k) => {
+            const mine = photos.filter((p) => p.kind === k.key);
+            return (
+              <div key={k.key}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-[13px] font-bold" style={{ color: "var(--ink-soft)" }}>
+                    {k.emoji} {k.label}
+                  </span>
+                  {k.hint && (
+                    <span
+                      className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: "var(--primary-soft)", color: "var(--primary-dark)" }}
+                    >
+                      {k.hint}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {mine.map((p) => (
+                    <div key={p.url} className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.url} alt="" className="w-20 h-20 rounded-xl object-cover" />
+                      <button
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/70 text-white text-xs"
+                        onClick={() => setPhotos((ps) => ps.filter((x) => x.url !== p.url))}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {photos.length < MAX_PHOTOS && (
+                    <label
+                      className="w-20 h-20 rounded-xl border-2 border-dashed flex items-center justify-center text-2xl cursor-pointer"
+                      style={{ borderColor: "var(--line)", color: "var(--ink-faint)" }}
+                    >
+                      +
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => onPick(e.target.files, k.key)}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <label className="label mt-5">한줄평 / 별명</label>

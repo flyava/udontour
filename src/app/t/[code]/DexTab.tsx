@@ -196,10 +196,18 @@ function DexCell({ slot, onTap }: { slot: DexSlot; onTap: () => void }) {
           </div>
           {slot.score != null && (
             <span
-              className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold tabular-nums"
+              className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[13px] font-extrabold tabular-nums"
               style={{ background: "rgba(255,255,255,0.95)", color: "var(--primary-dark)" }}
             >
               {slot.score.toFixed(1)}
+            </span>
+          )}
+          {slot.udonPhotos.length > 1 && (
+            <span
+              className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums"
+              style={{ background: "rgba(20,12,4,0.6)", color: "#fff" }}
+            >
+              📷 {slot.udonPhotos.length}
             </span>
           )}
         </>
@@ -245,9 +253,20 @@ function DexDetail({
           </button>
         </div>
 
-        {slot.photo && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={slot.photo} alt="" className="w-full h-52 object-cover rounded-2xl card" />
+        {slot.udonPhotos.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 snap-x">
+            {slot.udonPhotos.map((u) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={u}
+                src={u}
+                alt=""
+                className={`h-52 shrink-0 object-cover rounded-2xl card snap-center ${
+                  slot.udonPhotos.length > 1 ? "w-[78%]" : "w-full"
+                }`}
+              />
+            ))}
+          </div>
         )}
 
         <div className="flex items-center justify-between mt-4">
