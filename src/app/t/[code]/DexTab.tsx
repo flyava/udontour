@@ -77,12 +77,21 @@ export function DexTab({
         score: s.score,
         photo: s.photo,
       }));
-      const PAGE = 9;
-      const pageCount = Math.ceil(allSlots.length / PAGE);
-      const perPage = Math.ceil(allSlots.length / pageCount); // 페이지 균등 분배(10→5+5)
-      const pages: ShareSlot[][] = [];
-      for (let i = 0; i < allSlots.length; i += perPage) pages.push(allSlots.slice(i, i + perPage));
-      const shareCols = dexCols(Math.min(perPage, allSlots.length));
+      // 가능하면 4:5 한 장에 전부, 너무 많으면(>~36) 분할
+      const fit = shareFitCols(allSlots.length);
+      let pages: ShareSlot[][];
+      let shareCols: number;
+      if (fit) {
+        pages = [allSlots];
+        shareCols = fit;
+      } else {
+        const PAGE = 9;
+        const pageCount = Math.ceil(allSlots.length / PAGE);
+        const perPage = Math.ceil(allSlots.length / pageCount);
+        pages = [];
+        for (let i = 0; i < allSlots.length; i += perPage) pages.push(allSlots.slice(i, i + perPage));
+        shareCols = dexCols(Math.min(perPage, allSlots.length));
+      }
       const footer = `${tripLabel(tripStart, tripEnd)} · ${myCount}그릇 · 평균 ${avg.toFixed(2)}`;
 
       const blobs: Blob[] = [];
@@ -179,6 +188,20 @@ export function DexTab({
       {detail && <DexDetail slot={detail} onClose={() => setDetail(null)} onEdit={onOpenBowl} />}
     </div>
   );
+}
+
+/** 공유카드(4:5, 1200×1500)에 n개를 한 장에 담는 최소 열 수. 너무 많으면 null(→분할). */
+function shareFitCols(n: number): number | null {
+  if (n <= 0) return 1;
+  const availW = 1200 - 80 * 2;
+  const availH = 1500 - 150 - 300; // footerTop - headerBottom
+  const GAP = 24;
+  for (let c = 1; c <= 6; c++) {
+    const cell = (availW - (c - 1) * GAP) / c;
+    const rows = Math.ceil(n / c);
+    if (rows * cell + (rows - 1) * GAP <= availH) return c;
+  }
+  return null;
 }
 
 function fmtYmd(d: string): string {
