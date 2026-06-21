@@ -27,6 +27,7 @@ export function RatingSheet({
   const [visual, setVisual] = useState(existing?.visual ?? 0);
   const [condition, setCondition] = useState<number | null>(existing?.condition ?? null);
   const [revisit, setRevisit] = useState<boolean | null>(existing?.revisit ?? null);
+  const [menu, setMenu] = useState(existing?.menu ?? ""); // 내가 먹은 우동(개인)
   const [note, setNote] = useState(existing?.note ?? "");
   const [photos, setPhotos] = useState<{ url: string; kind: PhotoKind }[]>(
     (existing?.photo_urls ?? []).map((url, i) => ({
@@ -67,7 +68,7 @@ export function RatingSheet({
       visual,
       condition,
       revisit,
-      menu: null,
+      menu: menu.trim() || null,
       note: note.trim() || null,
       photo_urls: photos.map((p) => p.url),
       photo_kinds: photos.map((p) => p.kind),
@@ -93,7 +94,16 @@ export function RatingSheet({
           </button>
         </div>
 
-        <div className="card p-4 mt-3 flex flex-col gap-4">
+        <label className="label mt-1">내가 먹은 우동</label>
+        <input
+          className="field"
+          placeholder="예: 가마타마 우동"
+          maxLength={24}
+          value={menu}
+          onChange={(e) => setMenu(e.target.value)}
+        />
+
+        <div className="card p-4 mt-4 flex flex-col gap-4">
           <HalfSlider label="맛" value={taste} onChange={setTaste} />
           <HalfSlider label="면발" value={noodle} onChange={setNoodle} />
           <HalfSlider label="가성비" value={price} onChange={setPrice} />

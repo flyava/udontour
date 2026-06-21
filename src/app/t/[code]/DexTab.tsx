@@ -72,7 +72,8 @@ export function DexTab({
       const allSlots: ShareSlot[] = slots.map((s) => ({
         n: s.n,
         filled: s.filled,
-        label: s.shopRevealed ? s.label : `${s.n}번째`,
+        label: s.shopRevealed ? s.label : `${s.n}번째 가게`,
+        menu: s.menu,
         score: s.score,
         photo: s.photo,
       }));
@@ -224,11 +225,16 @@ function DexCell({ slot, onTap }: { slot: DexSlot; onTap: () => void }) {
           )}
           <div
             className="absolute inset-x-0 bottom-0 px-1.5 pt-5 pb-1.5"
-            style={{ background: "linear-gradient(to top, rgba(20,12,4,0.8), transparent)" }}
+            style={{ background: "linear-gradient(to top, rgba(20,12,4,0.82), transparent)" }}
           >
-            <div className="text-[10.5px] font-extrabold text-white truncate leading-tight">
-              {label}
+            <div className="text-[11px] font-extrabold text-white truncate leading-tight">
+              {slot.menu || label}
             </div>
+            {slot.menu && (
+              <div className="text-[9px] font-bold truncate leading-tight" style={{ color: "rgba(255,255,255,0.8)" }}>
+                📍 {label}
+              </div>
+            )}
           </div>
           {slot.score != null && (
             <span
@@ -280,10 +286,17 @@ function DexDetail({
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-grip" />
-        <div className="flex items-center justify-between py-2">
-          <h2 className="text-[19px] font-extrabold truncate pr-3">
-            {slot.shopRevealed ? slot.label : `${slot.n}번째 가게`}
-          </h2>
+        <div className="flex items-start justify-between py-2">
+          <div className="min-w-0 pr-3">
+            <h2 className="text-[19px] font-extrabold truncate">
+              {slot.menu || (slot.shopRevealed ? slot.label : `${slot.n}번째 가게`)}
+            </h2>
+            {slot.menu && (
+              <div className="text-[13px] font-bold truncate" style={{ color: "var(--ink-soft)" }}>
+                📍 {slot.shopRevealed ? slot.label : `${slot.n}번째 가게`}
+              </div>
+            )}
+          </div>
           <button className="text-[14px] font-bold shrink-0" style={{ color: "var(--ink-faint)" }} onClick={onClose}>
             닫기
           </button>

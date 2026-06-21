@@ -3,7 +3,8 @@ import { avgScore, bowlLabel, udonPhotos } from "./types";
 
 export type MyBowlScore = {
   n: number;
-  label: string;
+  label: string; // 가게(공개 후 상호명, 전엔 'N번째 가게')
+  menu: string | null; // 내가 먹은 우동
   score: number;
   revisit: boolean | null;
 };
@@ -20,6 +21,7 @@ export function myRanked(
     .map((r) => ({
       n: r.bowl_n,
       label: blabel.get(r.bowl_n) ?? `${r.bowl_n}번째 가게`,
+      menu: r.menu,
       score: avgScore(r),
       revisit: r.revisit,
     }))

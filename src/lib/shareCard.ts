@@ -6,7 +6,8 @@
 export type ShareSlot = {
   n: number;
   filled: boolean;
-  label: string;
+  label: string; // 가게(상호명 또는 'N번째')
+  menu: string | null; // 내가 먹은 우동
   score: number | null;
   photo: string | null;
 };
@@ -245,25 +246,38 @@ export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
         ctx.font = `400 ${Math.round(cell * 0.42)}px ${FONT}`;
         ctx.fillText("🍜", x + cell / 2, y + cell * 0.56);
       }
-      // 라벨(최대 2줄) — 긴 일본어 상호명 대응. 둥근 모서리에 안 잘리게 안쪽으로 들임
+      // 라벨 — 개인 도감: 우동(메뉴) 우선, 가게는 아래 작게. 둥근 모서리 회피 여백
       ctx.textAlign = "left";
+      const padX = Math.round(cell * 0.085);
+      const padB = Math.round(cell * 0.085);
       const fs = Math.max(20, Math.round(cell * 0.092));
+      const shopFs = Math.max(15, Math.round(cell * 0.064));
       ctx.font = `800 ${fs}px ${FONT}`;
-      const padX = Math.round(cell * 0.085); // 좌우 안전 여백(코너 곡선 회피)
-      const padB = Math.round(cell * 0.085); // 바닥 안전 여백
-      const lines = wrapLines(ctx, s.label, cell - padX * 2, 2);
+      const primaryLines = s.menu
+        ? [truncate(ctx, s.menu, cell - padX * 2)]
+        : wrapLines(ctx, s.label, cell - padX * 2, 2);
+      ctx.font = `700 ${shopFs}px ${FONT}`;
+      const shopText = s.menu ? truncate(ctx, "📍 " + s.label, cell - padX * 2) : null;
       const lh = Math.round(fs * 1.2);
-      // 하단 그라데이션(줄 수에 맞춰 높이 조절)
-      const gradTop = y + cell - (lines.length * lh + padB + 12);
-      const sh = ctx.createLinearGradient(x, Math.min(gradTop, y + cell * 0.5), x, y + cell);
+      const shopLh = shopText ? Math.round(shopFs * 1.3) : 0;
+      const blockH = primaryLines.length * lh + shopLh;
+      const gTop = Math.min(y + cell - (blockH + padB + 10), y + cell * 0.45);
+      const sh = ctx.createLinearGradient(x, gTop, x, y + cell);
       sh.addColorStop(0, "rgba(0,0,0,0)");
-      sh.addColorStop(1, "rgba(20,12,4,0.82)");
+      sh.addColorStop(1, "rgba(20,12,4,0.85)");
       ctx.fillStyle = sh;
-      ctx.fillRect(x, Math.min(gradTop, y + cell * 0.5), cell, cell);
+      ctx.fillRect(x, gTop, cell, cell);
+      let cy = y + cell - padB;
+      if (shopText) {
+        ctx.font = `700 ${shopFs}px ${FONT}`;
+        ctx.fillStyle = "rgba(255,255,255,0.82)";
+        ctx.fillText(shopText, x + padX, cy);
+        cy -= shopLh;
+      }
+      ctx.font = `800 ${fs}px ${FONT}`;
       ctx.fillStyle = "#fff";
-      lines.forEach((ln, li) => {
-        const baseY = y + cell - padB - (lines.length - 1 - li) * lh;
-        ctx.fillText(ln, x + padX, baseY);
+      primaryLines.forEach((ln, li) => {
+        ctx.fillText(ln, x + padX, cy - (primaryLines.length - 1 - li) * lh);
       });
       // 점수 배지
       if (s.score != null) {

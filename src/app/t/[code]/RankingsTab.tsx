@@ -69,9 +69,14 @@ export function RankingsTab({
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold truncate">
-                    {m.label}
+                    {m.menu || m.label}
                     {m.revisit && <span className="ml-1.5 text-[12px]">💘</span>}
                   </div>
+                  {m.menu && (
+                    <div className="text-[12px] truncate" style={{ color: "var(--ink-faint)" }}>
+                      📍 {m.label}
+                    </div>
+                  )}
                 </div>
                 <div className="font-extrabold tabular-nums shrink-0">{m.score.toFixed(2)}</div>
               </div>
