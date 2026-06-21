@@ -18,8 +18,8 @@ export function Finale({
   onClose: () => void;
 }) {
   const stats = bowlStats(bowls, ratings, participants);
-  const total = stats.length; // 팀이 비운 그릇 = 평가가 있는 distinct 그릇 수(평가 개수 아님)
-  const mine = ratings.filter((r) => r.participant_id === meId).length; // 내가 먹은(평가한) 그릇
+  const total = ratings.length; // 비운 그릇 = 모두가 먹은 그릇 수(평가 1건 = 그릇 1개)
+  const mine = ratings.filter((r) => r.participant_id === meId).length; // 그중 내가 먹은 그릇
   const isGroup = participants.length >= 2;
   const winner = ranked(stats)[0] ?? null;
 
@@ -230,8 +230,8 @@ const COL_GAP = 8;
 /** 비운 그릇이 하나씩 떨어져 쌓이는 더미. 열이 차면 옆 열로 — 전체 그릇 수만큼 모두 등장. */
 function BowlStack({ count, total }: { count: number; total: number }) {
   if (total === 0) return null;
-  const cols = Math.ceil(total / PER_COL);
-  const perCol = Math.ceil(total / cols); // 열 균등 분배(예: 18→9+9, 10→5+5)
+  const cols = Math.min(6, Math.ceil(total / PER_COL)); // 최대 6열(많아도 가로 안 넘침)
+  const perCol = Math.ceil(total / cols); // 열 균등 분배(예: 18→9+9, 64→11×6)
   const height = BOWL + (perCol - 1) * STEP;
   return (
     <div className="flex items-end justify-center mt-5" style={{ gap: COL_GAP, height }} aria-hidden>
