@@ -112,24 +112,30 @@ export function DexTab({
           }),
       );
 
-      // 파일 공유 가능(주로 모바일)하면 공유 시트로 — 여러 장도 한 번에 전달/저장
-      // (모바일은 a.click 순차 다운로드가 2번째부터 막혀서 일부만 저장되던 문제 방지)
+      // 파일 공유 가능(주로 모바일)하면 공유 시트로 — 여러 장도 한 번에 저장/공유
+      // (모바일 a.click 순차 다운로드는 2번째부터 막혀 일부만 저장됨)
       if (canFileShare && navigator.canShare?.({ files })) {
-        await navigator.share({ files, title: "우동 도감", text: `${myName}의 우동 도감 🍜` });
-      } else {
-        for (let i = 0; i < blobs.length; i++) {
-          const url = URL.createObjectURL(blobs[i]);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = files[i].name;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 2000);
-          if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 500));
+        try {
+          await navigator.share({ files }); // 파일만(텍스트 동봉은 일부 기기서 실패)
+          return; // 성공
+        } catch (e) {
+          if ((e as Error)?.name === "AbortError") return; // 사용자가 닫음
+          // 그 외(미지원/제스처 만료 등) → 다운로드로 폴백
         }
-        onToast(blobs.length > 1 ? `이미지 ${blobs.length}장을 저장했어요!` : "이미지를 저장했어요!");
       }
+      for (let i = 0; i < blobs.length; i++) {
+        const url = URL.createObjectURL(blobs[i]);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = files[i].name;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 600));
+      }
+      onToast(blobs.length > 1 ? `이미지 ${blobs.length}장을 저장했어요!` : "이미지를 저장했어요!");
     } catch (e) {
       if ((e as Error)?.name !== "AbortError") onToast("공유 이미지를 만들지 못했어요.");
     } finally {

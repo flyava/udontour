@@ -65,7 +65,7 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
     };
     img.onload = () => finish(img);
     img.onerror = () => finish(null);
-    setTimeout(() => finish(null), 8000);
+    setTimeout(() => finish(null), 4000); // 빨리 끝내 공유 제스처 만료 방지(실패 사진은 타일 대체)
     img.src = url;
   });
 }
