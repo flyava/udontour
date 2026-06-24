@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#e8822b"/>
+  <!-- 김(steam) -->
+  <g fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.9">
+    <path d="M13 5.5q-1.6 1.6 0 3.2"/>
+    <path d="M16 4.5q-1.6 1.6 0 3.2"/>
+    <path d="M19 5.5q-1.6 1.6 0 3.2"/>
+  </g>
+  <!-- 젓가락(chopsticks) -->
+  <g stroke="#6b3f12" stroke-width="1.7" stroke-linecap="round">
+    <path d="M19 8l8.5-3.5"/>
+    <path d="M20 11l8.5-3"/>
+  </g>
+  <!-- 그릇(bowl) -->
+  <path d="M4 14a12 12 0 0 0 24 0z" fill="#fffaf2"/>
+  <ellipse cx="16" cy="14" rx="12" ry="2.3" fill="#f6c453"/>
+  <!-- 면(noodles) -->
+  <g fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.95">
+    <path d="M7.5 13.6q4-2.6 8.5-1 4.5 1.6 8.5-1"/>
+  </g>
+  <!-- 계란(egg) -->
+  <circle cx="21" cy="13.6" r="2.2" fill="#ffe27a" stroke="#e8a33d" stroke-width="0.8"/>
+</svg>

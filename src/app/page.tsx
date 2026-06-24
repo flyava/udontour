@@ -105,6 +105,9 @@ export default function Home() {
 
       <section className="card mt-4 p-5">
         <h2 className="text-[17px] font-extrabold">코드로 입장</h2>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--ink-soft)" }}>
+          호스트에게 받은 코드를 입력하면 투어에 함께해요.
+        </p>
         <div className="flex gap-2 mt-3">
           <input
             className="field tracking-widest"
