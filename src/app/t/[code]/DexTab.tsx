@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Bowl, Rating } from "@/lib/types";
 import { myDex, dexCols, type DexSlot } from "@/lib/aggregate";
-import { renderDexCard, type ShareSlot } from "@/lib/shareCard";
+import { renderDexCard, zipImages, type ShareSlot } from "@/lib/shareCard";
 
 export function DexTab({
   bowls,
@@ -126,23 +126,17 @@ export function DexTab({
           // 그 외(미지원/제스처 만료 등) → 다운로드로 폴백
         }
       }
-      for (let i = 0; i < blobs.length; i++) {
-        const url = URL.createObjectURL(blobs[i]);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = files[i].name;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
-        if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 600));
+      // 다중 다운로드는 브라우저가 2번째부터 막음 → 여러 장이면 ZIP 한 번에(인스타용 4:5는 장별로 보존)
+      if (blobs.length === 1) {
+        download(blobs[0], "udontour-dex.png");
+        onToast("이미지를 저장했어요!");
+      } else {
+        const zip = await zipImages(
+          blobs.map((b, i) => ({ name: `udontour-dex-${i + 1}.png`, blob: b })),
+        );
+        download(zip, "udontour-dex.zip");
+        onToast(`이미지 ${blobs.length}장을 zip으로 저장했어요 (풀면 인스타용 ${blobs.length}장)`);
       }
-      onToast(
-        blobs.length > 1
-          ? `이미지 ${blobs.length}장 저장 — 브라우저가 물어보면 '허용'을 눌러주세요`
-          : "이미지를 저장했어요!",
-      );
     } catch (e) {
       if ((e as Error)?.name !== "AbortError") onToast("공유 이미지를 만들지 못했어요.");
     } finally {
@@ -193,6 +187,18 @@ export function DexTab({
       {detail && <DexDetail slot={detail} onClose={() => setDetail(null)} onEdit={onOpenBowl} />}
     </div>
   );
+}
+
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 function fmtYmd(d: string): string {

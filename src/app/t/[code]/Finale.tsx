@@ -107,7 +107,7 @@ export function Finale({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
+      className="fixed inset-0 z-50 overflow-y-auto"
       style={{ background: "radial-gradient(circle at 50% 30%, #fff3df, var(--bg))" }}
     >
       {burst.length > 0 && (
@@ -156,6 +156,7 @@ export function Finale({
         </div>
       )}
 
+      <div className="min-h-full flex flex-col items-center justify-center px-6 py-12 text-center">
       <div className="text-[15px] font-extrabold tracking-widest" style={{ color: "var(--ink-soft)" }}>
         오늘의 우동투어 결산
       </div>
@@ -218,6 +219,7 @@ export function Finale({
       <button className="btn btn-line mt-8 px-8" onClick={onClose}>
         닫기
       </button>
+      </div>
     </div>
   );
 }

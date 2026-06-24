@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "모리 우동투어",
+  title: "우동투어 평가 도감",
   description: "블라인드 그룹 우동투어 평가 앱",
 };
 

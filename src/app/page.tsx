@@ -37,7 +37,7 @@ export default function Home() {
     <main className="px-5 pt-14 pb-10">
       <div className="text-center rise">
         <div className="text-[56px] leading-none">🍜</div>
-        <h1 className="mt-3 text-[28px] font-extrabold tracking-tight">모리 우동투어</h1>
+        <h1 className="mt-3 text-[28px] font-extrabold tracking-tight">우동투어 평가 도감</h1>
         <p className="mt-2 text-[15px]" style={{ color: "var(--ink-soft)" }}>
           블라인드로 우동을 평가하고, 마지막에 최고의 우동을 공개합니다.
         </p>
@@ -148,7 +148,7 @@ export default function Home() {
           </a>
         </p>
         <p className="mt-3 text-[11px]" style={{ color: "var(--ink-faint)" }}>
-          © {new Date().getFullYear()} 모리 우동투어. All rights reserved.
+          © {new Date().getFullYear()} 우동투어 평가 도감. All rights reserved.
         </p>
       </footer>
     </main>

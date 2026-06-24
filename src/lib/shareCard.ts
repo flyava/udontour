@@ -156,6 +156,72 @@ function blobOf(canvas: HTMLCanvasElement): Promise<Blob> {
   );
 }
 
+function concatBytes(arrs: Uint8Array[]): Uint8Array {
+  let len = 0;
+  for (const a of arrs) len += a.length;
+  const out = new Uint8Array(len);
+  let o = 0;
+  for (const a of arrs) {
+    out.set(a, o);
+    o += a.length;
+  }
+  return out;
+}
+
+let CRC_TABLE: Uint32Array | null = null;
+function crc32(bytes: Uint8Array): number {
+  if (!CRC_TABLE) {
+    CRC_TABLE = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      CRC_TABLE[n] = c >>> 0;
+    }
+  }
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ bytes[i]) & 0xff];
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+/** PNG 여러 장을 무압축(store) ZIP 한 개로 묶는다.
+ *  데스크톱은 다중 다운로드를 막으므로 한 번의 다운로드로 안전하게 저장하되,
+ *  인스타 공유용 4:5 이미지를 페이지별로 그대로 보존한다(합치지 않음). */
+export async function zipImages(files: { name: string; blob: Blob }[]): Promise<Blob> {
+  const enc = new TextEncoder();
+  const u16 = (n: number) => new Uint8Array([n & 0xff, (n >>> 8) & 0xff]);
+  const u32 = (n: number) =>
+    new Uint8Array([n & 0xff, (n >>> 8) & 0xff, (n >>> 16) & 0xff, (n >>> 24) & 0xff]);
+
+  const parts: Uint8Array[] = [];
+  const central: Uint8Array[] = [];
+  let offset = 0;
+
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const data = new Uint8Array(await f.blob.arrayBuffer());
+    const crc = crc32(data);
+    const lfh = concatBytes([
+      u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+      u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name,
+    ]);
+    parts.push(lfh, data);
+    central.push(
+      concatBytes([
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0),
+        u32(crc), u32(data.length), u32(data.length),
+        u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name,
+      ]),
+    );
+    offset += lfh.length + data.length;
+  }
+  const cd = concatBytes(central);
+  const eocd = concatBytes([
+    u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+    u32(cd.length), u32(offset), u16(0),
+  ]);
+  return new Blob([...parts, cd, eocd], { type: "application/zip" });
+}
+
 export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
   await ensureFonts();
 

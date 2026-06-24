@@ -282,7 +282,7 @@ function Header({
   async function share() {
     const url = `${location.origin}/t/${code}`;
     try {
-      if (navigator.share) await navigator.share({ title: "모리 우동투어", url });
+      if (navigator.share) await navigator.share({ title: "우동투어 평가 도감", url });
       else {
         await navigator.clipboard.writeText(url);
         onShare("링크를 복사했어요!");
