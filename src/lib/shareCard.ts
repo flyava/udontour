@@ -156,7 +156,7 @@ function blobOf(canvas: HTMLCanvasElement): Promise<Blob> {
   );
 }
 
-function concatBytes(arrs: Uint8Array[]): Uint8Array {
+function concatBytes(arrs: Uint8Array[]): Uint8Array<ArrayBuffer> {
   let len = 0;
   for (const a of arrs) len += a.length;
   const out = new Uint8Array(len);
@@ -219,7 +219,8 @@ export async function zipImages(files: { name: string; blob: Blob }[]): Promise<
     u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
     u32(cd.length), u32(offset), u16(0),
   ]);
-  return new Blob([...parts, cd, eocd], { type: "application/zip" });
+  const all = concatBytes([...parts, cd, eocd]);
+  return new Blob([all], { type: "application/zip" });
 }
 
 export async function renderDexCard(opts: ShareCardOpts): Promise<Blob> {
